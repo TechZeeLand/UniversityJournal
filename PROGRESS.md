@@ -18,6 +18,8 @@ AGPL-3.0-or-later. Still to do: add the `LICENSE` file (download from https://ww
 ## Test results so far
 User built it in Portainer: site loads. Bug found and fixed: in nginx, `set` must come before `rewrite ... break` (otherwise the proxy variable is empty), so fonts/icons did not load. Browser console messages about an inline script from 'sandbox eval code' and 'file:///' come from a browser extension, not the site.
 
+Second bug fixed: `image:` in docker-compose.yml made Portainer's 'Pull and redeploy' try to pull from Docker Hub. Removed it, so the stack is build-only. In Portainer, enable 'Re-build image' (or equivalent) when redeploying after pushes.
+
 ## Earlier note (superseded)
 The sandbox had no PHP or Docker, so none of this has been run. First build may need small fixes (package names, paths). Please build it once and send me any error output.
 

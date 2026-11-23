@@ -2,7 +2,6 @@
 services:
   app:
     build: .
-    image: university-journal:latest
     container_name: university-journal
     restart: unless-stopped
     ports:
