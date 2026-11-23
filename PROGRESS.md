@@ -15,7 +15,10 @@ Last updated: 2026-11-24
 ## Licensing
 AGPL-3.0-or-later. Still to do: add the `LICENSE` file (download from https://www.gnu.org/licenses/agpl-3.0.txt) and put a licence header in source files. Migration 003 adds the `source_repo_url` setting; the footer shows a source link when it is set.
 
-## NOT tested yet
+## Test results so far
+User built it in Portainer: site loads. Bug found and fixed: in nginx, `set` must come before `rewrite ... break` (otherwise the proxy variable is empty), so fonts/icons did not load. Browser console messages about an inline script from 'sandbox eval code' and 'file:///' come from a browser extension, not the site.
+
+## Earlier note (superseded)
 The sandbox had no PHP or Docker, so none of this has been run. First build may need small fixes (package names, paths). Please build it once and send me any error output.
 
 ## Next: Phase 1B (accounts)
