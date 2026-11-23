@@ -1,0 +1,8 @@
+[mysqld]
+skip-networking
+socket = /run/mysqld/mysqld.sock
+datadir = /var/lib/mysql
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+innodb_buffer_pool_size = 128M
+max_connections = 60

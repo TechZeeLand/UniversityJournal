@@ -1,0 +1,28 @@
+# Portainer: Stacks > Add stack > Repository. Set the variables below in the stack's environment section.
+services:
+  app:
+    build: .
+    image: university-journal:latest
+    container_name: university-journal
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8090}:80"
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:?set APP_URL, e.g. https://journal.example.edu}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Dhaka}
+      APP_KEY: ${APP_KEY:?set APP_KEY to a long random string}
+      DB_NAME: ${DB_NAME:-university_journal}
+      DB_USER: ${DB_USER:-journal}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+      INITIAL_ADMIN_UID: ${INITIAL_ADMIN_UID:-}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-}
+      ICONS_HOST: ${ICONS_HOST:-icons.rayaz.org}
+      FONTS_HOST: ${FONTS_HOST:-fonts.rayaz.org}
+    volumes:
+      - journal-db:/var/lib/mysql
+      - journal-storage:/var/www/storage
+volumes:
+  journal-db:
+  journal-storage:
