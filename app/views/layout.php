@@ -14,6 +14,7 @@ $otherLang = $loc === 'en' ? 'bn' : 'en';
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e($title) ?></title>
   <meta name="description" content="<?= e(setting('site_tagline', '')) ?>">
+  <link rel="icon" href="<?= asset('logo.svg') ?>" type="image/svg+xml">
   <script src="<?= asset('js/theme-init.js') ?>"></script>
   <link rel="stylesheet" href="<?= e(icons_base()) ?>/zi.css">
   <link rel="stylesheet" href="<?= e(\App\Core\Fonts::cssUrl()) ?>">

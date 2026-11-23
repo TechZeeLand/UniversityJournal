@@ -30,7 +30,8 @@ h3{font-size:1.2rem}
 :focus-visible{outline:3px solid var(--primary);outline-offset:2px;border-radius:6px}
 
 /* icons */
-.zi,.only-dark{display:none}
+.zi{vertical-align:-.15em}
+.only-dark{display:none}
 [data-theme="dark"] .only-dark{display:inline-block}
 [data-theme="dark"] .only-light{display:none}
 
