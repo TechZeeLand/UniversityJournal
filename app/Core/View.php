@@ -4,6 +4,13 @@ namespace App\Core;
 
 final class View
 {
+    /** Include views/<name>.php in place (no layout); used for reusable fragments. */
+    public static function partial(string $name, array $data = []): void
+    {
+        extract($data, EXTR_SKIP);
+        require APP_PATH . '/views/' . $name . '.php';
+    }
+
     /** Render views/<name>.php inside views/layout.php. */
     public static function render(string $name, array $data = [], bool $layout = true): void
     {

@@ -22,3 +22,8 @@ Data lives in the volumes `journal-db` and `journal-storage`. Back them up.
 
 ## Local run
 `docker compose --env-file .env up --build`
+
+## Accounts and recovery
+- The first tech admin is created from `INITIAL_ADMIN_UID` / `INITIAL_ADMIN_PASSWORD` and must change the password at first sign-in.
+- If the only tech admin is locked out: `docker exec -it university-journal php /var/www/app/bin/reset-password.php <university-id>` prints a temporary password.
+- Behind a reverse proxy, set `TRUSTED_PROXIES` to the proxy's IP/CIDR if it is not on a private network, so login lockout sees real visitor IPs.

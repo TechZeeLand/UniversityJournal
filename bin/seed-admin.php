@@ -13,8 +13,8 @@ if (DB::val("SELECT COUNT(*) FROM users WHERE role = 'tech_admin'") > 0) {
     return;
 }
 DB::exec(
-    "INSERT INTO users (uid, password_hash, role, status, must_change_password) VALUES (?, ?, 'tech_admin', 'active', 1)",
-    [$uid, password_hash($pass, PASSWORD_DEFAULT)]
+    "INSERT INTO users (uid, public_id, password_hash, role, status, must_change_password) VALUES (?, ?, ?, 'tech_admin', 'active', 1)",
+    [$uid, bin2hex(random_bytes(6)), password_hash($pass, PASSWORD_DEFAULT)]
 );
 DB::exec('INSERT INTO user_profiles (user_id, full_name) VALUES (?, ?)', [DB::lastId(), 'Tech Admin']);
 echo "[seed] tech admin '$uid' created (must change password at first login)\n";

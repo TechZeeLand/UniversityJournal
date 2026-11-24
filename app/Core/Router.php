@@ -20,6 +20,8 @@ final class Router
         $path = rawurldecode(parse_url($uri, PHP_URL_PATH) ?: '/');
         $path = $path === '' ? '/' : $path;
 
+        $method = $method === 'HEAD' ? 'GET' : $method;
+
         if ($method === 'POST' && !Csrf::verify()) {
             http_response_code(419);
             View::render('pages/error', ['code' => 419, 'title' => t('error.csrf_title'), 'message' => t('error.csrf_msg')]);

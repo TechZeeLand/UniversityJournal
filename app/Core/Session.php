@@ -13,6 +13,8 @@ final class Session
             'lifetime' => 0, 'path' => '/', 'secure' => $https, 'httponly' => true, 'samesite' => 'Lax',
         ]);
         session_save_path('/var/www/storage/cache');
+        // PHP deletes session files after 24 minutes by default, which would sign people out early.
+        ini_set('session.gc_maxlifetime', '28800');
         session_start();
     }
 }

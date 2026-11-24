@@ -1,5 +1,6 @@
 <?php
-use App\Core\I18n;
+use App\Core\{Auth, Csrf, Flash, I18n};
+$cu = Auth::user();
 $loc = I18n::locale();
 $site = setting('site_name', 'University Journal');
 $title = ($pageTitle ?? null) ? $pageTitle . ' · ' . $site : $site . ' · ' . setting('site_tagline', '');
@@ -36,12 +37,27 @@ $otherLang = $loc === 'en' ? 'bn' : 'en';
       <div class="tools">
         <a class="icon-btn" href="/lang/<?= $otherLang ?>" hreflang="<?= $otherLang ?>" aria-label="<?= e(t('ui.language')) ?>: <?= e(I18n::LOCALES[$otherLang]) ?>"><?= icon('languages') ?><span class="lang-label"><?= e(I18n::LOCALES[$otherLang]) ?></span></a>
         <button class="icon-btn theme-toggle" type="button" aria-label="<?= e(t('ui.theme')) ?>"><?= icon('moon', 'only-light') ?><?= icon('sun', 'only-dark') ?></button>
-        <a class="btn btn-primary btn-sm" href="/login"><?= e(t('nav.login')) ?></a>
+        <?php if ($cu): ?>
+          <a class="icon-btn" href="/profile" aria-label="<?= e(t('nav.profile')) ?>"><?= avatar($cu) ?></a>
+          <a class="btn btn-ghost btn-sm" href="<?= e(Auth::homeFor($cu['role'])) ?>"><?= icon('layout-dashboard') ?><span class="hide-sm"><?= e(t('home.' . $cu['role'])) ?></span></a>
+          <form method="post" action="/logout" class="inline"><?= Csrf::field() ?><button class="icon-btn" type="submit" aria-label="<?= e(t('nav.logout')) ?>" title="<?= e(t('nav.logout')) ?>"><?= icon('log-out') ?></button></form>
+        <?php else: ?>
+          <a class="btn btn-primary btn-sm" href="/login"><?= e(t('nav.login')) ?></a>
+        <?php endif; ?>
       </div>
     </div>
   </header>
 
-  <main id="main"><?= $content ?></main>
+  <main id="main">
+    <?php $flashes = Flash::pull(); if ($flashes): ?>
+      <div class="wrap flashes">
+        <?php foreach ($flashes as $f): ?>
+          <div class="alert alert-<?= e($f['t']) ?>" role="status"><?= icon($f['t'] === 'ok' ? 'circle-check' : ($f['t'] === 'error' ? 'circle-alert' : 'info')) ?><span><?= e($f['m']) ?></span></div>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+    <?= $content ?>
+  </main>
 
   <footer class="site-footer">
     <div class="wrap foot">

@@ -15,8 +15,20 @@ final class I18n
         $c = $_COOKIE['lang'] ?? '';
         $default = Settings::get('default_lang', 'en');
         self::$locale = isset(self::LOCALES[$c]) ? $c : (isset(self::LOCALES[$default]) ? $default : 'en');
-        self::$fallback = require APP_PATH . '/lang/en.php';
-        self::$strings = self::$locale === 'en' ? self::$fallback : (require APP_PATH . '/lang/' . self::$locale . '.php');
+        self::$fallback = self::load('en');
+        self::$strings = self::$locale === 'en' ? self::$fallback : self::load(self::$locale);
+    }
+
+    /** lang/<loc>.php plus every lang/<loc>/*.php, merged. */
+    private static function load(string $loc): array
+    {
+        $s = require APP_PATH . '/lang/' . $loc . '.php';
+        $files = glob(APP_PATH . '/lang/' . $loc . '/*.php') ?: [];
+        sort($files);
+        foreach ($files as $f) {
+            $s = array_merge($s, require $f);
+        }
+        return $s;
     }
 
     public static function locale(): string { return self::$locale; }

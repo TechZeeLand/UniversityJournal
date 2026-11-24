@@ -24,4 +24,12 @@ An open-source (AGPL-3.0-or-later) article publishing platform for a university,
 12. Process rules from the user: warn before the chat context runs out; keep this file and PROGRESS.md up to date.
 
 ## Repository layout
-`app/Core` (Env, DB, Router, Session, Csrf, I18n, Settings, View, Migrator), `app/lang` (en, bn), `app/views`, `bin` (migrate, seed-admin), `migrations` (numbered .sql files, applied once at container start), `public` (front controller and assets), `docker` (nginx, php-fpm, mariadb, supervisor, entrypoint).
+`app/Core` (Env, DB, Router, Session, Csrf, I18n, Settings, View, Migrator, Request, Auth, Flash, Audit, Password), `app/Controllers`, `app/Services` (Users, Profile, Avatar), `app/routes.php`, `app/lang` (en, bn), `app/views`, `bin` (migrate, seed-admin), `migrations` (numbered .sql files, applied once at container start), `public` (front controller and assets), `docker` (nginx, php-fpm, mariadb, supervisor, entrypoint).
+
+## Decisions added with Phase 1B
+13. Tech admins can use both portals and manage every role; moderators manage students and teachers only. Nobody can suspend or change the role of their own account in the portal.
+14. Passwords are never chosen by admins: they are generated, shown once, and must be changed at first login. Imports cannot carry passwords.
+15. Lockout is deliberately three-scoped so an attacker cannot easily lock a real user out of their own account.
+16. Public URLs will use `users.public_id`, never the university ID.
+17. `TRUSTED_PROXIES` controls which proxies' `X-Forwarded-For` is believed (default private networks); set it if your reverse proxy has a public address.
+18. Language strings live in `app/lang/<locale>.php` plus `app/lang/<locale>/*.php` (merged).

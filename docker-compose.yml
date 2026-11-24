@@ -17,6 +17,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
       INITIAL_ADMIN_UID: ${INITIAL_ADMIN_UID:-}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
       ICONS_HOST: ${ICONS_HOST:-icons.rayaz.org}
       FONTS_HOST: ${FONTS_HOST:-fonts.rayaz.org}
     volumes:

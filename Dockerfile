@@ -4,7 +4,7 @@ FROM alpine:3.20
 RUN apk add --no-cache \
       nginx supervisor mariadb mariadb-client tzdata curl \
       php83 php83-fpm php83-pdo_mysql php83-mysqlnd php83-mbstring php83-intl php83-gd \
-      php83-xml php83-dom php83-session php83-ctype php83-fileinfo php83-openssl \
+      php83-exif php83-xml php83-dom php83-session php83-ctype php83-fileinfo php83-openssl \
       php83-curl php83-zip php83-opcache php83-tokenizer php83-simplexml php83-xmlwriter \
  && ln -sf /usr/bin/php83 /usr/bin/php \
  && mkdir -p /run/mysqld /var/www/storage /var/lib/nginx/tmp \
