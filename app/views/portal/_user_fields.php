@@ -4,9 +4,10 @@ $lockRole = $lockRole ?? false;
 ?>
 <div class="row">
   <div class="field">
-    <label for="uid"><?= e(t('users.th_uid')) ?> <span class="req">*</span></label>
-    <input id="uid" name="uid" type="text" maxlength="40" required value="<?= e($old['uid'] ?? '') ?>" autocapitalize="none" spellcheck="false">
-    <p class="field-hint"><?= e(t('users.uid_hint')) ?></p>
+    <?php $seq = \App\Core\Identity::sequential(); ?>
+    <label for="uid"><?= e(t('users.th_uid')) ?><?= $seq ? '' : ' <span class="req">*</span>' ?></label>
+    <input id="uid" name="uid" type="text" maxlength="40"<?= $seq ? '' : ' required' ?> value="<?= e($old['uid'] ?? '') ?>" autocapitalize="none" spellcheck="false">
+    <p class="field-hint"><?= e(t($seq ? 'users.uid_hint_seq' : 'users.uid_hint')) ?></p>
   </div>
   <div class="field">
     <label for="role"><?= e(t('users.th_role')) ?> <span class="req">*</span></label>

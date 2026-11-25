@@ -13,9 +13,11 @@
           <option value=""><?= e(t('users.all_status')) ?></option>
           <?php foreach (['active', 'suspended'] as $s): ?><option value="<?= $s ?>"<?= $s === $statusFilter ? ' selected' : '' ?>><?= e(t('status.' . $s)) ?></option><?php endforeach; ?>
         </select>
+        <?php if (!empty($noid)): ?><input type="hidden" name="noid" value="1"><?php endif; ?>
         <button class="btn btn-ghost btn-sm" type="submit"><?= icon('search') ?> <?= e(t('ui.search')) ?></button>
       </form>
       <div class="actions">
+        <?php if (!empty($noid)): ?><a class="btn btn-ghost btn-sm" href="/moderator/users"><?= e(t('id.clear_filter')) ?></a><?php endif; ?>
         <a class="btn btn-primary btn-sm" href="/moderator/users/new"><?= icon('user-plus') ?> <?= e(t('users.new')) ?></a>
         <a class="btn btn-ghost btn-sm" href="/moderator/users/import"><?= icon('upload') ?> <?= e(t('users.import')) ?></a>
       </div>
@@ -28,14 +30,14 @@
       <div class="table-wrap card">
         <table class="tbl">
           <thead><tr>
-            <th><?= e(t('users.th_user')) ?></th><th><?= e(t('users.th_uid')) ?></th><th><?= e(t('users.th_role')) ?></th>
+            <th><?= e(t('users.th_user')) ?></th><th><?= e(\App\Core\Identity::label()) ?></th><th><?= e(t('users.th_role')) ?></th>
             <th><?= e(t('users.th_status')) ?></th><th><?= e(t('users.th_profile')) ?></th><th><?= e(t('users.th_last_login')) ?></th>
           </tr></thead>
           <tbody>
           <?php foreach ($rows as $r): ?>
             <tr>
               <td><a class="usercell" href="/moderator/users/<?= (int) $r['id'] ?>"><?= avatar($r, 'avatar-sm') ?><span><?= e(display_name($r)) ?></span></a></td>
-              <td><code><?= e($r['uid']) ?></code></td>
+              <td><code><?= e(\App\Core\Identity::loginId($r)) ?></code></td>
               <td><?= e(role_label($r['role'])) ?></td>
               <td><span class="badge <?= $r['status'] === 'active' ? 'badge-ok' : 'badge-danger' ?>"><?= e(t('status.' . $r['status'])) ?></span></td>
               <td><?= in_array($r['role'], ['student', 'teacher'], true) ? ((int) $r['profile_complete'] === 1 ? icon('circle-check') . ' ' . e(t('users.complete')) : '<span class="muted">' . e(t('users.incomplete')) . '</span>') : '—' ?></td>

@@ -8,7 +8,7 @@
       <article class="card"><span class="card-icon"><?= icon('scroll-text') ?></span><h3><?= e(t('audit.title')) ?></h3>
         <p class="muted"><?= e(t('tech.audit_d')) ?></p><p><a class="btn btn-primary btn-sm" href="/tech/audit"><?= e(t('tech.open')) ?></a></p></article>
       <article class="card"><span class="card-icon"><?= icon('shield-check') ?></span><h3><?= e(t('tech.settings')) ?></h3>
-        <p class="muted"><?= e(t('tech.settings_d')) ?></p></article>
+        <p class="muted"><?= e(t('tech.settings_d')) ?></p><p><a class="btn btn-primary btn-sm" href="/tech/settings"><?= e(t('tech.open')) ?></a></p></article>
     </div>
     <h2 class="h-sm"><?= e(t('tech.system')) ?></h2>
     <div class="card pad"><dl class="kv">

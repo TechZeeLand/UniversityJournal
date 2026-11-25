@@ -4,10 +4,11 @@
     <?php \App\Core\View::partial('portal/_nav', ['active' => 'users', 'actor' => $actor]); ?>
     <p class="muted"><?= e(t('import.intro', ['n' => $limit])) ?></p>
     <ul class="muted small">
-      <li><?= e(t('import.cols_required')) ?> <code>uid</code>, <code>full_name</code></li>
-      <li><?= e(t('import.cols_optional')) ?> <code>full_name_bn</code>, <code>role</code>, <code>department</code>, <code>academic_session</code>, <code>designation</code>, <code>email</code></li>
+      <li><?= e(t('import.cols_required')) ?> <?= \App\Core\Identity::sequential() ? '' : '<code>uid</code>, ' ?><code>full_name</code></li>
+      <li><?= e(t('import.cols_optional')) ?> <?= \App\Core\Identity::sequential() ? '<code>uid</code>, ' : '' ?><code>full_name_bn</code>, <code>role</code>, <code>department</code>, <code>academic_session</code>, <code>designation</code>, <code>email</code></li>
       <li><?= e(t('import.dept_note')) ?></li>
       <li><?= e(t('import.pw_note')) ?></li>
+      <?php if (\App\Core\Identity::sequential()): ?><li><?= e(t('import.seq_note')) ?></li><?php endif; ?>
     </ul>
     <p><a class="btn btn-ghost btn-sm" href="/moderator/users/import/template.csv"><?= icon('download') ?> <?= e(t('import.template')) ?></a></p>
     <form method="post" action="/moderator/users/import" enctype="multipart/form-data" class="form card pad">

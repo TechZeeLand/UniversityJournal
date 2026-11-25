@@ -13,7 +13,7 @@ foreach ($rows as $r) $n[$r['status']] = ($n[$r['status']] ?? 0) + 1;
        <a class="btn btn-ghost" href="/moderator/users"><?= e(t('users.title')) ?></a></p>
     <div class="table-wrap card">
       <table class="tbl">
-        <thead><tr><th>#</th><th><?= e(t('users.th_uid')) ?></th><th><?= e(t('profile.f.full_name')) ?></th><th><?= e(t('users.th_role')) ?></th><th><?= e(t('import.th_result')) ?></th><th><?= e(t('import.th_password')) ?></th></tr></thead>
+        <thead><tr><th>#</th><th><?= e(\App\Core\Identity::label()) ?></th><th><?= e(t('profile.f.full_name')) ?></th><th><?= e(t('users.th_role')) ?></th><th><?= e(t('import.th_result')) ?></th><th><?= e(t('import.th_password')) ?></th></tr></thead>
         <tbody>
         <?php foreach ($rows as $r): ?>
           <tr>

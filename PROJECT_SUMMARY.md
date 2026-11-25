@@ -1,6 +1,6 @@
 # University Journal: full summary
 
-Last updated: 2026-11-24. Status: Phase 1A built and deployed; Phase 1B (login and accounts) written, awaiting your first build and test.
+Last updated: 2026-11-25. Status: Phase 1A built and deployed; Phase 1B (login and accounts) and Phase 1B+ (switchable sign-in ID system, first Tech portal settings) written, awaiting your build and test.
 
 ## 1. What the project is
 An article publishing site for your university where students and professors publish their work. It is a student initiative; university officials are not involved yet. Licence: **AGPL-3.0-or-later** (open source). Code lives on GitHub (also the backup) and is deployed by pulling the repo into Docker through Portainer's repository option, like your other projects.
@@ -47,15 +47,22 @@ I can't see my own token count, so I refresh `PROJECT.md` and `PROGRESS.md` afte
 - **Approved defaults:** placeholder branding "University Journal" (editable in the Tech portal); SMTP configured in the Tech portal; self-managed ad slots; optional TOTP 2FA for the tech admin; configurable upload limits (default 5 MB images, 20 MB attachments); password resets approved by an admin (email if SMTP is set); editor screening with review labels in Phase 1, full peer review in Phase 2; placeholder faculties and departments.
 - **Roles** are stored as text (student, teacher, moderator, tech_admin) so reviewer, editor and department admin can be added later without a schema change.
 - **Student IDs** stay private by default (from your ideas file).
+- **Sign-in ID system (2026-11-25):** switchable in the Tech portal between the university ID (default, one unique ID per user) and a fixed login number given at creation, counting up from 0 (unique, never reused). Every account always has a login number, so switching works both ways; switching back is refused while any account has no university ID.
+- **2FA (2026-11-25):** email code and authenticator app wanted; scheduled after SMTP settings exist (Phase 1E-b). You will set up SMTP in the Tech portal later.
+- **Modern ease-of-use features (2026-11-25):** wanted for a polished feel; the proposed list is in PROGRESS.md.
+- **The Tech portal can do everything (2026-11-25):** all texts, settings, limits, pages, toggles and all project fonts are editable there; each new feature ships with its settings.
+- **Working rules (2026-11-25):** I may make improvements, fix bugs along the way, ask questions, and I keep giving progress updates.
 
 ## 5. Phase plan
 | Phase | Scope | Status |
 |---|---|---|
 | 1A | Foundation: Docker, core PHP, schema, theme, i18n, fonts and icons mirrors | Done, deployed |
+| 1B+ | Switchable sign-in ID (university ID or login number from 0), Tech portal settings framework with Accounts, Uploads, Branding, General tabs | Written, needs your test |
 | 1B | Login with role redirect, lockout, forced password change, admin-created users (single and CSV), profile editing, required-fields gate, photos, password-reset approval | Written, needs your test |
 | 1C | Article types, rich editor, submission workflow, moderator portal | Planned |
 | 1D | Landing page polish, article pages, search, about, contact, legal pages | Planned |
-| 1E | Tech portal: all settings, pages, university details, font picker, required-field toggles | Planned |
+| 1E-a | Tech portal part 2: Fonts tab, Email (SMTP) with test button, required-field toggles, university details, editable pages | Planned |
+| 1E-b | Security: 2FA by email code and authenticator app, devices list, trusted devices | Planned (you asked me to note it and pick the phase) |
 | 2 | Community discussions, ads page, reviewer assignment, citations, versions, PDF export, analytics | Planned |
 | 3 | Further ideas from your ideas file (collections and journals, ORCID, collaboration, etc.) | Planned |
 

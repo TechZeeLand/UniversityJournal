@@ -6,9 +6,10 @@
       <?= avatar($target, 'avatar-lg') ?>
       <div>
         <h1 class="h-md"><?= e(display_name($target)) ?></h1>
-        <p><code><?= e($target['uid']) ?></code>
+        <p><code><?= e(\App\Core\Identity::loginId($target)) ?></code>
           <span class="badge"><?= e(role_label($target['role'])) ?></span>
           <span class="badge <?= $target['status'] === 'active' ? 'badge-ok' : 'badge-danger' ?>"><?= e(t('status.' . $target['status'])) ?></span></p>
+        <p class="muted small"><?= e(t('id.both', ['uid' => ((string) $target['uid'] !== '' ? $target['uid'] : '—'), 'no' => (string) $target['serial_no']])) ?></p>
         <p class="muted small"><?= e(t('users.created_at', ['d' => fmt_dt($target['created_at'])])) ?> · <?= e(t('users.th_last_login')) ?>: <?= e(fmt_dt($target['last_login_at'])) ?>
           <?= (int) $target['must_change_password'] === 1 ? ' · ' . e(t('users.must_change')) : '' ?></p>
         <?php if (in_array($target['role'], ['student', 'teacher'], true)): ?>

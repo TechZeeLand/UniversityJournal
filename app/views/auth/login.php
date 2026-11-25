@@ -3,7 +3,7 @@
     <div class="card auth-card">
       <span class="card-icon"><?= icon('log-in') ?></span>
       <h1 class="h-md"><?= e(t('auth.login_title')) ?></h1>
-      <p class="muted"><?= e(t('auth.login_sub')) ?></p>
+      <p class="muted"><?= e(\App\Core\Identity::t('auth.login_sub')) ?></p>
       <?php if (!empty($error)): ?>
         <div class="alert alert-error" role="alert"><?= icon('circle-alert') ?><span><?= e($error) ?></span></div>
       <?php endif; ?>
@@ -11,8 +11,8 @@
         <?= \App\Core\Csrf::field() ?>
         <input type="hidden" name="next" value="<?= e($next) ?>">
         <div class="field">
-          <label for="uid"><?= e(t('auth.uid')) ?></label>
-          <input id="uid" name="uid" type="text" value="<?= e($uid) ?>" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
+          <label for="uid"><?= e(\App\Core\Identity::label()) ?></label>
+          <input id="uid" name="uid" type="text" value="<?= e($uid) ?>" autocomplete="username" autocapitalize="none" spellcheck="false"<?= \App\Core\Identity::sequential() ? ' inputmode="numeric"' : '' ?> required autofocus>
         </div>
         <div class="field">
           <label for="password"><?= e(t('auth.password')) ?></label>

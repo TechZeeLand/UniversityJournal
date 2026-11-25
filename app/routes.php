@@ -64,6 +64,10 @@ $router->post('/moderator/resets/{id}/reject', [ModeratorController::class, 'res
 // ---- tech portal ----
 $router->get('/tech', [TechController::class, 'index']);
 $router->get('/tech/audit', [TechController::class, 'audit']);
+$router->get('/tech/settings', [TechController::class, 'settingsIndex']);
+$router->post('/tech/settings/id-mode', [TechController::class, 'idModeSave']);   // before {group}
+$router->get('/tech/settings/{group}', [TechController::class, 'settings']);
+$router->post('/tech/settings/{group}', [TechController::class, 'settingsSave']);
 
 // Pages planned for later phases show a friendly placeholder instead of a 404.
 foreach (['explore', 'authors', 'departments', 'collections', 'about', 'contact', 'privacy', 'terms', 'advertise', 'community'] as $slug) {

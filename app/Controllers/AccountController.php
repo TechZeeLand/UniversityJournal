@@ -41,7 +41,7 @@ final class AccountController
             $err = t('pw.err_mismatch');
         } elseif ($new === $cur) {
             $err = t('pw.err_same_old');
-        } elseif (($k = Password::validate($new, $u['uid'])) !== null) {
+        } elseif (($k = Password::validate($new, \App\Core\Identity::loginId($u))) !== null) {
             $err = t('pw.' . $k, ['n' => Password::minLength()]);
         }
         if ($err !== null) {
@@ -53,7 +53,7 @@ final class AccountController
         // Every other session of this user is signed out; this one continues with the new epoch.
         $_SESSION['epoch'] = Auth::setPassword((int) $u['id'], $new, false);
         session_regenerate_id(true);
-        Audit::log('password.changed', $u['uid'], null, (int) $u['id']);
+        Audit::log('password.changed', \App\Core\Identity::loginId($u), null, (int) $u['id']);
         Flash::add('ok', t('pw.changed'));
         redirect(Auth::homeFor($u['role']));
     }
@@ -174,7 +174,7 @@ final class AccountController
         if ($oldPhoto !== '' && $oldPhoto !== $photo) Avatar::delete($oldPhoto);
 
         Profile::recalc($id);
-        Audit::log('profile.updated', $u['uid'], null, $id);
+        Audit::log('profile.updated', \App\Core\Identity::loginId($u), null, $id);
         Flash::add('ok', t('profile.saved'));
         redirect('/profile');
     }

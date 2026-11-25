@@ -2,13 +2,13 @@
 declare(strict_types=1);
 namespace App\Services;
 
-use App\Core\{DB, Password};
+use App\Core\{DB, Identity, Password};
 
 final class Users
 {
     public const ROLES = ['student', 'teacher', 'moderator', 'tech_admin'];
 
-    private const COLS = 'u.id, u.uid, u.public_id, u.role, u.status, u.email, u.must_change_password, u.last_login_at, u.created_at,
+    private const COLS = 'u.id, u.uid, u.serial_no, u.public_id, u.role, u.status, u.email, u.must_change_password, u.last_login_at, u.created_at,
                           p.full_name, p.full_name_bn, p.department_id, p.academic_session, p.designation, p.photo_path, p.profile_complete';
 
     /** University IDs: 3 to 40 characters, letters, digits, dot, dash, underscore. */
@@ -24,6 +24,7 @@ final class Users
 
     public static function uidTaken(string $uid, int $exceptId = 0): bool
     {
+        if ($uid === '') return false;      // an empty university ID (allowed in sequential mode) is stored as NULL
         return DB::val('SELECT 1 FROM users WHERE uid = ? AND id <> ?', [$uid, $exceptId]) !== null;
     }
 
@@ -55,8 +56,8 @@ final class Users
 
     /**
      * Create an account with a generated temporary password (the user must change it at first login).
-     * @param array $d uid, role, email, full_name, full_name_bn, department_id (int|null), academic_session, designation
-     * @return array{id:int, password:string}
+     * @param array $d uid (may be empty in sequential mode), role, email, full_name, full_name_bn, department_id (int|null), academic_session, designation
+     * @return array{id:int, password:string, serial_no:int, login_id:string}
      */
     public static function create(array $d, ?int $createdBy): array
     {
@@ -64,10 +65,11 @@ final class Users
         $pdo = DB::pdo();
         $pdo->beginTransaction();
         try {
+            $serial = Identity::nextSerial();       // locks the counter until commit
             DB::exec(
-                "INSERT INTO users (uid, public_id, password_hash, role, status, must_change_password, email, created_by)
-                 VALUES (?, ?, ?, ?, 'active', 1, ?, ?)",
-                [$d['uid'], self::newPublicId(), password_hash($password, PASSWORD_DEFAULT), $d['role'], nn((string) ($d['email'] ?? '')), $createdBy]
+                "INSERT INTO users (uid, serial_no, public_id, password_hash, role, status, must_change_password, email, created_by)
+                 VALUES (?, ?, ?, ?, ?, 'active', 1, ?, ?)",
+                [nn((string) ($d['uid'] ?? '')), $serial, self::newPublicId(), password_hash($password, PASSWORD_DEFAULT), $d['role'], nn((string) ($d['email'] ?? '')), $createdBy]
             );
             $id = DB::lastId();
             self::saveProfile($id, $d);
@@ -77,13 +79,14 @@ final class Users
             throw $e;
         }
         Profile::recalc($id);
-        return ['id' => $id, 'password' => $password];
+        $loginId = Identity::loginId(['uid' => nn((string) ($d['uid'] ?? '')), 'serial_no' => $serial]);
+        return ['id' => $id, 'password' => $password, 'serial_no' => $serial, 'login_id' => $loginId];
     }
 
     /** Admin edit of the account basics (uid, role, email) and the main profile fields. */
     public static function update(int $id, array $d): void
     {
-        DB::exec('UPDATE users SET uid = ?, role = ?, email = ? WHERE id = ?', [$d['uid'], $d['role'], nn((string) ($d['email'] ?? '')), $id]);
+        DB::exec('UPDATE users SET uid = ?, role = ?, email = ? WHERE id = ?', [nn((string) ($d['uid'] ?? '')), $d['role'], nn((string) ($d['email'] ?? '')), $id]);
         self::saveProfile($id, $d);
         Profile::recalc($id);
     }

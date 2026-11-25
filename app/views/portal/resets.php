@@ -18,7 +18,7 @@ use App\Services\Users;
           <tbody>
           <?php foreach ($pendingRows as $r): $can = Users::canManage($actor, $r) && (int) $r['user_id'] !== (int) $actor['id']; ?>
             <tr>
-              <td><a href="/moderator/users/<?= (int) $r['user_id'] ?>"><?= e(display_name($r)) ?></a><br><code><?= e($r['uid']) ?></code> <span class="badge"><?= e(role_label($r['role'])) ?></span></td>
+              <td><a href="/moderator/users/<?= (int) $r['user_id'] ?>"><?= e(display_name($r)) ?></a><br><code><?= e(\App\Core\Identity::loginId($r)) ?></code> <span class="badge"><?= e(role_label($r['role'])) ?></span></td>
               <td class="muted"><?= e(fmt_dt($r['created_at'])) ?></td>
               <td><?= e($r['contact']) ?><?= $r['note'] ? '<br><span class="muted small">' . e($r['note']) . '</span>' : '' ?></td>
               <td>
@@ -45,9 +45,9 @@ use App\Services\Users;
           <tbody>
           <?php foreach ($doneRows as $r): ?>
             <tr>
-              <td><code><?= e($r['uid']) ?></code> <?= e(display_name($r)) ?></td>
+              <td><code><?= e(\App\Core\Identity::loginId($r)) ?></code> <?= e(display_name($r)) ?></td>
               <td><span class="badge <?= $r['status'] === 'approved' ? 'badge-ok' : '' ?>"><?= e(t('resets.st_' . $r['status'])) ?></span></td>
-              <td class="muted small"><?= e(fmt_dt($r['handled_at'])) ?> · <?= e($r['handled_uid'] ?? '—') ?></td>
+              <td class="muted small"><?= e(fmt_dt($r['handled_at'])) ?> · <?= e(($r['handled_uid'] ?? '') !== '' ? $r['handled_uid'] : (($r['handled_serial'] ?? null) !== null ? '#' . $r['handled_serial'] : '—')) ?></td>
             </tr>
           <?php endforeach; ?>
           </tbody>

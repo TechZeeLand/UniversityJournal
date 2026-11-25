@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers;
 
-use App\Core\{Audit, Auth, DB, Flash, Password, View};
+use App\Core\{Audit, Auth, DB, Flash, Identity, Password, View};
 use App\Services\{Profile, Users};
 
 /** Moderator portal (moderators and tech admins): people, imports and password-reset requests. */
@@ -61,6 +61,7 @@ final class ModeratorController
         $role = (string) ($_GET['role'] ?? '');
         $status = (string) ($_GET['status'] ?? '');
         $page = max(1, (int) ($_GET['p'] ?? 1));
+        $noid = ($_GET['noid'] ?? '') === '1';       // only accounts without a university ID (to fix before switching modes)
         $per = 25;
 
         $roles = Users::visibleRoles($actor);
@@ -68,17 +69,18 @@ final class ModeratorController
         $params = $roles;
         if (in_array($role, $roles, true)) { $where[] = 'u.role = ?'; $params[] = $role; } else { $role = ''; }
         if (in_array($status, ['active', 'suspended'], true)) { $where[] = 'u.status = ?'; $params[] = $status; } else { $status = ''; }
+        if ($noid) $where[] = 'u.uid IS NULL';
         if ($q !== '') {
             $like = '%' . addcslashes($q, '%_\\') . '%';
-            $where[] = '(u.uid LIKE ? OR p.full_name LIKE ? OR p.full_name_bn LIKE ? OR u.email LIKE ?)';
-            array_push($params, $like, $like, $like, $like);
+            $where[] = '(u.uid LIKE ? OR CAST(u.serial_no AS CHAR) LIKE ? OR p.full_name LIKE ? OR p.full_name_bn LIKE ? OR u.email LIKE ?)';
+            array_push($params, $like, $like, $like, $like, $like);
         }
         $w = implode(' AND ', $where);
 
         $total = (int) DB::val("SELECT COUNT(*) FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id WHERE $w", $params);
         $off = ($page - 1) * $per;
         $rows = DB::all(
-            "SELECT u.id, u.uid, u.role, u.status, u.email, u.last_login_at, u.created_at,
+            "SELECT u.id, u.uid, u.serial_no, u.role, u.status, u.email, u.last_login_at, u.created_at,
                     p.full_name, p.full_name_bn, p.photo_path, p.profile_complete
                FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id
               WHERE $w ORDER BY u.created_at DESC, u.id DESC LIMIT $per OFFSET $off",
@@ -87,7 +89,7 @@ final class ModeratorController
 
         View::render('portal/users', [
             'title' => t('users.title'), 'actor' => $actor, 'rows' => $rows, 'total' => $total, 'per' => $per, 'page' => $page,
-            'q' => $q, 'roleFilter' => $role, 'statusFilter' => $status, 'roles' => $roles,
+            'q' => $q, 'roleFilter' => $role, 'statusFilter' => $status, 'roles' => $roles, 'noid' => $noid,
         ]);
     }
 
@@ -117,8 +119,8 @@ final class ModeratorController
             self::showNew($actor, $in, t('users.err_uid_taken'));
             return;
         }
-        Audit::log('user.created', $clean['uid'], $clean['role']);
-        Flash::putSecret(['uid' => $clean['uid'], 'name' => $clean['full_name'], 'password' => $res['password']]);
+        Audit::log('user.created', Identity::tag(['uid' => $clean['uid'], 'serial_no' => $res['serial_no']]), $clean['role']);
+        Flash::putSecret(['uid' => $res['login_id'], 'name' => $clean['full_name'], 'password' => $res['password']]);
         Flash::add('ok', t('users.created'));
         redirect('/moderator/users/' . $res['id']);
     }
@@ -157,9 +159,9 @@ final class ModeratorController
 
         Users::update((int) $row['id'], $clean);
         $changes = [];
-        if ($clean['uid'] !== $row['uid']) $changes[] = 'uid: ' . $row['uid'] . ' -> ' . $clean['uid'];
+        if ($clean['uid'] !== (string) $row['uid']) $changes[] = 'uid: ' . $row['uid'] . ' -> ' . $clean['uid'];
         if ($clean['role'] !== $row['role']) $changes[] = 'role: ' . $row['role'] . ' -> ' . $clean['role'];
-        Audit::log('user.updated', $clean['uid'], $changes ? implode('; ', $changes) : null);
+        Audit::log('user.updated', Identity::tag(['uid' => $clean['uid'], 'serial_no' => $row['serial_no']]), $changes ? implode('; ', $changes) : null);
         Flash::add('ok', t('users.saved'));
         redirect('/moderator/users/' . (int) $row['id']);
     }
@@ -172,7 +174,7 @@ final class ModeratorController
         $new = post('status') === 'suspended' ? 'suspended' : 'active';
 
         DB::exec('UPDATE users SET status = ? WHERE id = ?', [$new, (int) $row['id']]);
-        Audit::log($new === 'suspended' ? 'user.suspended' : 'user.activated', $row['uid']);
+        Audit::log($new === 'suspended' ? 'user.suspended' : 'user.activated', Identity::tag($row));
         Flash::add('ok', t($new === 'suspended' ? 'users.suspended_ok' : 'users.activated_ok'));
         redirect('/moderator/users/' . (int) $row['id']);
     }
@@ -189,8 +191,8 @@ final class ModeratorController
             "UPDATE password_reset_requests SET status = 'approved', handled_by = ?, handled_at = NOW() WHERE user_id = ? AND status = 'pending'",
             [(int) $actor['id'], (int) $row['id']]
         );
-        Audit::log('password.reset', $row['uid']);
-        Flash::putSecret(['uid' => $row['uid'], 'name' => display_name($row), 'password' => $pw]);
+        Audit::log('password.reset', Identity::tag($row));
+        Flash::putSecret(['uid' => Identity::loginId($row), 'name' => display_name($row), 'password' => $pw]);
         redirect('/moderator/users/' . (int) $row['id']);
     }
 
@@ -198,7 +200,7 @@ final class ModeratorController
     {
         $self = (int) $row['id'] === (int) $actor['id'];
         $old ??= [
-            'uid' => $row['uid'], 'role' => $row['role'], 'email' => (string) $row['email'],
+            'uid' => (string) $row['uid'], 'role' => $row['role'], 'email' => (string) $row['email'],
             'full_name' => (string) $row['full_name'], 'full_name_bn' => (string) $row['full_name_bn'],
             'department_id' => (string) $row['department_id'], 'academic_session' => (string) $row['academic_session'],
             'designation' => (string) $row['designation'],
@@ -232,7 +234,8 @@ final class ModeratorController
         $c = $in;
         $c['department_id'] = null;
         $err = null;
-        if (!Users::validUid($in['uid'])) {
+        // University ID: required in university mode; optional in sequential mode (but valid and unique when given).
+        if ($in['uid'] === '' ? !Identity::sequential() : !Users::validUid($in['uid'])) {
             $err = t('users.err_uid');
         } elseif (Users::uidTaken($in['uid'], $exceptId)) {
             $err = t('users.err_uid_taken');
@@ -299,7 +302,7 @@ final class ModeratorController
             $key = preg_replace('/[\s\-]+/', '_', strtolower(trim((string) $h)));
             if (isset(self::CSV_ALIASES[$key]) && !in_array(self::CSV_ALIASES[$key], $map, true)) $map[$i] = self::CSV_ALIASES[$key];
         }
-        if (!in_array('uid', $map, true) || !in_array('full_name', $map, true)) {
+        if ((!Identity::sequential() && !in_array('uid', $map, true)) || !in_array('full_name', $map, true)) {
             fclose($fh);
             Flash::add('error', t('import.err_columns'));
             redirect('/moderator/users/import');
@@ -347,6 +350,7 @@ final class ModeratorController
             try {
                 $res = Users::create($clean, (int) $actor['id']);
                 $entry['status'] = 'created';
+                $entry['uid'] = $res['login_id'];       // in sequential mode this is how the admin learns the new numbers
                 $entry['password'] = $res['password'];
             } catch (\Throwable $e) {
                 error_log((string) $e);
@@ -386,7 +390,7 @@ final class ModeratorController
         header('Cache-Control: no-store');
         echo "\xEF\xBB\xBF";
         $out = fopen('php://output', 'w');
-        fputcsv($out, ['line', 'uid', 'full_name', 'role', 'result', 'temporary_password', 'note'], ',', '"', '');
+        fputcsv($out, ['line', 'login_id', 'full_name', 'role', 'result', 'temporary_password', 'note'], ',', '"', '');
         foreach ($imp['rows'] as $r) {
             fputcsv($out, array_map([self::class, 'csvSafe'], [(string) $r['line'], $r['uid'], $r['name'], $r['role'], $r['status'], $r['password'], $r['msg']]), ',', '"', '');
         }
@@ -418,7 +422,7 @@ final class ModeratorController
     {
         $actor = self::actor();
         $sql = "SELECT r.id, r.user_id, r.note, r.contact, r.status, r.created_at, r.handled_at,
-                       u.uid, u.role, p.full_name, p.full_name_bn, h.uid AS handled_uid
+                       u.uid, u.serial_no, u.role, p.full_name, p.full_name_bn, h.uid AS handled_uid, h.serial_no AS handled_serial
                   FROM password_reset_requests r
                   JOIN users u ON u.id = r.user_id
                   LEFT JOIN user_profiles p ON p.user_id = u.id
@@ -444,20 +448,20 @@ final class ModeratorController
         $pw = Password::generate();
         Auth::setPassword((int) $target['id'], $pw, true);
         DB::exec("UPDATE password_reset_requests SET status = 'approved', handled_by = ?, handled_at = NOW() WHERE id = ?", [(int) $actor['id'], (int) $req['id']]);
-        Audit::log('reset.approved', $target['uid']);
-        Flash::putSecret(['uid' => $target['uid'], 'name' => display_name($target), 'password' => $pw]);
+        Audit::log('reset.approved', Identity::tag($target));
+        Flash::putSecret(['uid' => Identity::loginId($target), 'name' => display_name($target), 'password' => $pw]);
         redirect('/moderator/resets');
     }
 
     public static function resetReject(string $id): void
     {
         $actor = self::actor();
-        $req = ctype_digit($id) ? DB::one("SELECT r.*, u.uid FROM password_reset_requests r JOIN users u ON u.id = r.user_id WHERE r.id = ? AND r.status = 'pending'", [(int) $id]) : null;
+        $req = ctype_digit($id) ? DB::one("SELECT r.*, u.uid, u.serial_no FROM password_reset_requests r JOIN users u ON u.id = r.user_id WHERE r.id = ? AND r.status = 'pending'", [(int) $id]) : null;
         if ($req) {
             $target = Users::find((int) $req['user_id']);
             if (!$target || !Users::canManage($actor, $target)) abort(403);
             DB::exec("UPDATE password_reset_requests SET status = 'rejected', handled_by = ?, handled_at = NOW() WHERE id = ?", [(int) $actor['id'], (int) $req['id']]);
-            Audit::log('reset.rejected', $req['uid']);
+            Audit::log('reset.rejected', Identity::tag($req));
             Flash::add('ok', t('resets.rejected_ok'));
         }
         redirect('/moderator/resets');

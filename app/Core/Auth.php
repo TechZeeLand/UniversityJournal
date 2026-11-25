@@ -33,7 +33,7 @@ final class Auth
         }
 
         $row = DB::one(
-            'SELECT u.id, u.uid, u.public_id, u.role, u.status, u.must_change_password, u.email, u.auth_epoch,
+            'SELECT u.id, u.uid, u.serial_no, u.public_id, u.role, u.status, u.must_change_password, u.email, u.auth_epoch,
                     p.full_name, p.full_name_bn, p.photo_path, p.profile_complete
                FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id WHERE u.id = ?',
             [$id]
@@ -95,21 +95,24 @@ final class Auth
      */
     public static function attempt(string $uid, string $password, string $ip): array
     {
-        $ident = mb_strtolower(mb_substr(trim($uid), 0, 100));
+        // $uid is whatever was typed: the university ID or the login number, depending on Identity::mode().
+        $raw = mb_strtolower(mb_substr(trim($uid), 0, 100));
+        $key = Identity::normalize($raw);
+        $ident = $key ?? $raw;
 
         $wait = self::lockWait($ident, $ip);
         if ($wait > 0) return ['ok' => false, 'error' => 'locked', 'wait' => $wait];
 
-        $u = DB::one(
-            'SELECT id, uid, password_hash, role, status, must_change_password, auth_epoch FROM users WHERE uid = ?',
-            [$ident]
+        $u = $key === null ? null : DB::one(
+            'SELECT id, uid, serial_no, password_hash, role, status, must_change_password, auth_epoch FROM users WHERE ' . Identity::column() . ' = ?',
+            [$key]
         );
         // Always do one hash verification so that unknown IDs take as long as known ones.
         $ok = password_verify($password, $u['password_hash'] ?? self::dummy());
 
         if (!$u || !$ok) {
             self::record($ident, $ip, false);
-            if ($u) Audit::log('login.fail', $u['uid'], null, (int) $u['id']);
+            if ($u) Audit::log('login.fail', Identity::loginId($u), null, (int) $u['id']);
             return ['ok' => false, 'error' => 'invalid'];
         }
         if ($u['status'] !== 'active') {

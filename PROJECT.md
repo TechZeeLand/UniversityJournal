@@ -24,7 +24,7 @@ An open-source (AGPL-3.0-or-later) article publishing platform for a university,
 12. Process rules from the user: warn before the chat context runs out; keep this file and PROGRESS.md up to date.
 
 ## Repository layout
-`app/Core` (Env, DB, Router, Session, Csrf, I18n, Settings, View, Migrator, Request, Auth, Flash, Audit, Password), `app/Controllers`, `app/Services` (Users, Profile, Avatar), `app/routes.php`, `app/lang` (en, bn), `app/views`, `bin` (migrate, seed-admin), `migrations` (numbered .sql files, applied once at container start), `public` (front controller and assets), `docker` (nginx, php-fpm, mariadb, supervisor, entrypoint).
+`app/Core` (Env, DB, Router, Session, Csrf, I18n, Settings, View, Migrator, Request, Auth, Flash, Audit, Password, Identity, Fonts), `app/Controllers`, `app/Services` (Users, Profile, Avatar, TechSettings), `app/routes.php`, `app/lang` (en, bn), `app/views`, `bin` (migrate, seed-admin), `migrations` (numbered .sql files, applied once at container start), `public` (front controller and assets), `docker` (nginx, php-fpm, mariadb, supervisor, entrypoint).
 
 ## Decisions added with Phase 1B
 13. Tech admins can use both portals and manage every role; moderators manage students and teachers only. Nobody can suspend or change the role of their own account in the portal.
@@ -33,3 +33,12 @@ An open-source (AGPL-3.0-or-later) article publishing platform for a university,
 16. Public URLs will use `users.public_id`, never the university ID.
 17. `TRUSTED_PROXIES` controls which proxies' `X-Forwarded-For` is believed (default private networks); set it if your reverse proxy has a public address.
 18. Language strings live in `app/lang/<locale>.php` plus `app/lang/<locale>/*.php` (merged).
+
+## Decisions added 2026-11-25
+19. **Sign-in ID system is switchable** in Tech portal > Settings > Accounts and security (setting `id_mode`). `university` (default): the university ID is the username, unique per user. `sequential`: a fixed login number assigned at account creation, counting up from 0, unique, never reused. Every account always has a login number (`users.serial_no`, counter in table `counters`), so switching works both ways. `users.uid` is optional in login-number mode. Switching back to university IDs is refused while any account lacks a university ID. All code asks `App\Core\Identity` for the label, the lookup column and the value to show; never read `uid` directly for sign-in.
+20. **2FA wanted**: email code and authenticator app (TOTP). Not built yet; scheduled for Phase 1E-b "Security", after the Email (SMTP) settings tab exists. SMTP is configured by the owner later in the Tech portal.
+21. **Modern ease-of-use and polish features wanted** (toasts, shortcuts, command palette, autosave, PWA, notifications, share cards and so on). Backlog is in PROGRESS.md.
+22. **The Tech portal can do everything.** Every text, setting, limit, page, font, toggle and feature switch is editable there rather than in code; each new feature ships with its Tech settings tab or section. Tabs are declared in `app/Services/TechSettings.php`.
+23. **All project fonts are editable from the Tech portal** (Fonts tab with pickers fed by the fonts service; body, headings, Bangla, Arabic, weights; later article and editor fonts).
+24. The owner allows me to make improvements, fix bugs along the way, ask questions when needed, and keep giving progress updates.
+

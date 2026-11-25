@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers;
 
-use App\Core\{Audit, Auth, DB, Flash, Request, View};
+use App\Core\{Audit, Auth, DB, Flash, Identity, Request, View};
 
 final class AuthController
 {
@@ -43,7 +43,7 @@ final class AuthController
 
         $u = $res['user'];
         Auth::login($u);
-        Audit::log('login.ok', $u['uid'], null, (int) $u['id']);
+        Audit::log('login.ok', Identity::loginId($u), null, (int) $u['id']);
         if ((int) $u['must_change_password'] === 1) redirect('/account/password');
         redirect($next !== '' ? $next : Auth::homeFor($u['role']));
     }
@@ -51,7 +51,7 @@ final class AuthController
     public static function logout(): void
     {
         $u = Auth::user();
-        if ($u) Audit::log('logout', $u['uid'], null, (int) $u['id']);
+        if ($u) Audit::log('logout', Identity::loginId($u), null, (int) $u['id']);
         Auth::logout();
         Flash::add('ok', t('auth.logged_out'));
         redirect('/login');
@@ -76,7 +76,7 @@ final class AuthController
 
         if ($uid === '') {
             http_response_code(422);
-            View::render('auth/forgot', ['title' => t('auth.forgot_title'), 'done' => false, 'error' => t('auth.err_uid_required'), 'uid' => '']);
+            View::render('auth/forgot', ['title' => t('auth.forgot_title'), 'done' => false, 'error' => Identity::t('auth.err_uid_required'), 'uid' => '']);
             return;
         }
         if (Auth::resetThrottled($ip)) {
@@ -86,14 +86,15 @@ final class AuthController
         }
         Auth::recordReset($ip);
 
-        $row = DB::one('SELECT id, uid, status FROM users WHERE uid = ?', [$uid]);
+        $key = Identity::normalize($uid);
+        $row = $key === null ? null : DB::one('SELECT id, uid, serial_no, status FROM users WHERE ' . Identity::column() . ' = ?', [$key]);
         if ($row && $row['status'] === 'active'
             && DB::val("SELECT 1 FROM password_reset_requests WHERE user_id = ? AND status = 'pending'", [(int) $row['id']]) === null) {
             DB::exec(
                 'INSERT INTO password_reset_requests (user_id, note, contact, ip) VALUES (?, ?, ?, ?)',
                 [(int) $row['id'], nn($note), nn($contact), $ip]
             );
-            Audit::log('reset.requested', $row['uid'], null, (int) $row['id']);
+            Audit::log('reset.requested', Identity::loginId($row), null, (int) $row['id']);
         }
         View::render('auth/forgot', ['title' => t('auth.forgot_title'), 'done' => true, 'error' => null, 'uid' => '']);
     }
