@@ -266,7 +266,7 @@ final class Articles
     /** Numbers for the home page: published articles, authors with a published article, total reads. */
     public static function stats(): array
     {
-        $r = DB::one("SELECT COUNT(*) AS n, COUNT(DISTINCT author_id) AS authors, COALESCE(SUM(view_count), 0) AS reads FROM articles WHERE status = 'published'");
-        return ['articles' => (int) ($r['n'] ?? 0), 'authors' => (int) ($r['authors'] ?? 0), 'reads' => (int) ($r['reads'] ?? 0)];
+        $r = DB::one("SELECT COUNT(*) AS n, COUNT(DISTINCT author_id) AS authors, COALESCE(SUM(view_count), 0) AS read_total FROM articles WHERE status = 'published'");
+        return ['articles' => (int) ($r['n'] ?? 0), 'authors' => (int) ($r['authors'] ?? 0), 'reads' => (int) ($r['read_total'] ?? 0)];
     }
 }

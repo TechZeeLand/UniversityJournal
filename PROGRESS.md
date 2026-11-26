@@ -16,6 +16,10 @@ Last updated: 2026-11-26 (Phase 1E-a written: data folder, branding uploads, pub
 
 **Demo content**: `php bin/seed-demo.php` adds 24 sample published articles (uses your existing students/teachers as authors); `php bin/seed-demo.php --clear` removes them. Run it once to see the newspaper layout.
 
+**Bugs found after your first test (2026-11-27)**
+- Home page returned 500: the home statistics query used `reads` as a column alias, and READS is a reserved word in MySQL/MariaDB. Renamed to `read_total`. Only the home page ran that query.
+- Bangla digits in `num()` / `num_short()` were corrupted because `strtr()` with a multibyte replacement string works byte by byte. Now uses an array map.
+
 **Test checklist**
 - [ ] Migration 007 applies on start (new tables, `users.google_sub`, `users.has_password`, new settings).
 - [ ] `php bin/seed-demo.php`, then open `/`: newspaper section shows; try `/explore` with every sort and filter.

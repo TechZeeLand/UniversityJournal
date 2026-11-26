@@ -164,7 +164,7 @@ function fmt_date(?string $s): string
 function num(int|float|string $n): string
 {
     $s = number_format((float) $n, 0, '.', '');
-    return I18n::locale() === 'bn' ? strtr($s, '0123456789', '০১২৩৪৫৬৭৮৯') : $s;
+    return I18n::locale() === 'bn' ? strtr($s, ['0' => '০', '1' => '১', '2' => '২', '3' => '৩', '4' => '৪', '5' => '৫', '6' => '৬', '7' => '৭', '8' => '৮', '9' => '৯']) : $s;
 }
 
 /** Same as num(), but 1200 becomes 1.2K. */
@@ -172,7 +172,7 @@ function num_short(int $n): string
 {
     $fmt = static function (float $v): string {
         $s = rtrim(rtrim(number_format($v, 1, '.', ''), '0'), '.');
-        return I18n::locale() === 'bn' ? strtr($s, '0123456789', '০১২৩৪৫৬৭৮৯') : $s;
+        return I18n::locale() === 'bn' ? strtr($s, ['0' => '০', '1' => '১', '2' => '২', '3' => '৩', '4' => '৪', '5' => '৫', '6' => '৬', '7' => '৭', '8' => '৮', '9' => '৯']) : $s;
     };
     if ($n >= 1000000) return $fmt($n / 1000000) . 'M';
     if ($n >= 1000) return $fmt($n / 1000) . 'K';
