@@ -7,8 +7,10 @@ use App\Core\{DB, Identity, Password};
 final class Users
 {
     public const ROLES = ['student', 'teacher', 'moderator', 'tech_admin'];
+    /** Roles that have a public profile page and a public number. */
+    public const PUBLIC_ROLES = ['student', 'teacher'];
 
-    private const COLS = 'u.id, u.uid, u.serial_no, u.public_id, u.role, u.status, u.email, u.must_change_password, u.last_login_at, u.created_at,
+    private const COLS = 'u.id, u.uid, u.serial_no, u.public_id, u.public_no, u.public_slug, u.role, u.status, u.email, u.must_change_password, u.last_login_at, u.created_at,
                           p.full_name, p.full_name_bn, p.department_id, p.academic_session, p.designation, p.photo_path, p.profile_complete';
 
     /** University IDs: 3 to 40 characters, letters, digits, dot, dash, underscore. */
@@ -25,7 +27,8 @@ final class Users
     public static function uidTaken(string $uid, int $exceptId = 0): bool
     {
         if ($uid === '') return false;      // an empty university ID (allowed in sequential mode) is stored as NULL
-        return DB::val('SELECT 1 FROM users WHERE uid = ? AND id <> ?', [$uid, $exceptId]) !== null;
+        // also refuse an ID that is someone's custom public address, so two addresses can never collide
+        return DB::val('SELECT 1 FROM users WHERE (uid = ? OR public_slug = ?) AND id <> ?', [$uid, $uid, $exceptId]) !== null;
     }
 
     /** Roles an admin may see in lists. */
@@ -66,10 +69,11 @@ final class Users
         $pdo->beginTransaction();
         try {
             $serial = Identity::nextSerial();       // locks the counter until commit
+            $publicNo = in_array($d['role'], self::PUBLIC_ROLES, true) ? Identity::nextPublicNo() : null;
             DB::exec(
-                "INSERT INTO users (uid, serial_no, public_id, password_hash, role, status, must_change_password, email, created_by)
-                 VALUES (?, ?, ?, ?, ?, 'active', 1, ?, ?)",
-                [nn((string) ($d['uid'] ?? '')), $serial, self::newPublicId(), password_hash($password, PASSWORD_DEFAULT), $d['role'], nn((string) ($d['email'] ?? '')), $createdBy]
+                "INSERT INTO users (uid, serial_no, public_id, public_no, password_hash, role, status, must_change_password, email, created_by)
+                 VALUES (?, ?, ?, ?, ?, ?, 'active', 1, ?, ?)",
+                [nn((string) ($d['uid'] ?? '')), $serial, self::newPublicId(), $publicNo, password_hash($password, PASSWORD_DEFAULT), $d['role'], nn((string) ($d['email'] ?? '')), $createdBy]
             );
             $id = DB::lastId();
             self::saveProfile($id, $d);
@@ -83,11 +87,29 @@ final class Users
         return ['id' => $id, 'password' => $password, 'serial_no' => $serial, 'login_id' => $loginId];
     }
 
-    /** Admin edit of the account basics (uid, role, email) and the main profile fields. */
+    /**
+     * Admin edit of the account basics (uid, role, email) and the main profile fields.
+     * Only when $d has a 'public_slug' key (tech admins) is the custom public address changed.
+     */
     public static function update(int $id, array $d): void
     {
-        DB::exec('UPDATE users SET uid = ?, role = ?, email = ? WHERE id = ?', [nn((string) ($d['uid'] ?? '')), $d['role'], nn((string) ($d['email'] ?? '')), $id]);
-        self::saveProfile($id, $d);
+        $pdo = DB::pdo();
+        $pdo->beginTransaction();
+        try {
+            DB::exec('UPDATE users SET uid = ?, role = ?, email = ? WHERE id = ?', [nn((string) ($d['uid'] ?? '')), $d['role'], nn((string) ($d['email'] ?? '')), $id]);
+            if (array_key_exists('public_slug', $d)) {
+                DB::exec('UPDATE users SET public_slug = ? WHERE id = ?', [nn((string) $d['public_slug']), $id]);
+            }
+            // someone who becomes a student or teacher gets their public number now (never reused, never changed later)
+            if (in_array($d['role'], self::PUBLIC_ROLES, true) && DB::val('SELECT public_no FROM users WHERE id = ?', [$id]) === null) {
+                DB::exec('UPDATE users SET public_no = ? WHERE id = ?', [Identity::nextPublicNo(), $id]);
+            }
+            self::saveProfile($id, $d);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
         Profile::recalc($id);
     }
 

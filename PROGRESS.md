@@ -1,8 +1,30 @@
 # Progress
 
-Last updated: 2026-11-25 (Phase 1B+ written: switchable sign-in ID system and the first Tech portal settings; Phase 1B and 1B+ not yet tested)
+Last updated: 2026-11-26 (Phase 1E-a written: data folder, branding uploads, public addresses, editable site; Phases 1B, 1B+ and 1E-a are NOT yet tested, the sandbox has no PHP)
 
-## Done: Phase 1B+ (2026-11-25) - written, UNTESTED (the sandbox has no PHP; only a syntax lint and a language-key check were run)
+## Done: Phase 1E-a (2026-11-26) - written, UNTESTED (static lint only: brackets, imports, method names, language keys en/bn parity, SQL quotes)
+**Your requests**
+1. **Logo and icon editable from the Tech portal**: Settings > Branding has upload cards for logo, dark-theme logo (optional), site icon (favicon) and share picture; plus names in English and Bangla, brand colours for light and dark, "show name next to logo". The header, favicon, theme colour and share tags use them.
+2. **Public URLs**: `/students/<university ID>` and `/teachers/<public number>` by default; switchable under Settings > Public addresses (students: university ID, number or random code; teachers: number, university ID or random code). Custom address per person on the person's page (tech admin only). Public profile page and `/authors` directory built so the addresses resolve. People can hide their page on their profile; pages show only for complete profiles. Teachers' number is a separate serial (1, 2, 3 ...), not the sign-in login number.
+3. **Data folder**: `data/` in the project root holds database, uploads, backups and runtime files (see PROJECT.md decision 25 and `data/README.md`). docker-compose mounts `${DATA_DIR:-./data}:/data`; entrypoint, MariaDB, nginx, sessions and uploads all use it.
+4. **Design consistent**: new CSS reuses the existing components. Fixed a bug: number/URL inputs in the settings pages were unstyled.
+5. **Everything public editable from the Tech portal**: Site content > Pages (about, contact, privacy, terms and your own, Markdown, EN/BN, draft/published), Menus (header and footer), Texts (every public wording, EN/BN, empty = default); Settings tabs Fonts, Home page, Contact and social, Profile rules (the required-fields checkboxes), Backups.
+
+**Also built (improvements)**: Fonts tab with picker (suggestions from the font service); required profile fields editable (decision 11); automatic and manual database backups with download; Open Graph tags; sr-only brand name option; `Paths`, `Theme`, `Markdown` core classes; `/theme.css` now also carries brand colours.
+
+**Not built yet (still planned)**: Email (SMTP) settings tab with test button, 2FA (Phase 1E-b), publishing (1C), search/RSS/sitemap/PWA (1D). Pages cannot upload images yet (use the `/uploads/...` path or a web address).
+
+### Test checklist for 1E-a
+1. Prepare the data folder: on Portainer set `DATA_DIR` to an absolute host folder (e.g. `/srv/university-journal/data`, create it). The first start with an empty folder creates a NEW database; see README to copy the old volumes or start fresh. Rebuild/redeploy; migration 006 runs.
+2. Sign in as tech admin. `/tech` shows "Data folder" and cards for Site content and Backups. Check that `data/db`, `data/uploads`, `data/runtime` appeared on the host.
+3. Settings > Branding: upload a logo (SVG and PNG), a dark logo, an icon; change the colours; reload the site in light and dark. Remove one and see the built-in return.
+4. Settings > Fonts: change the body font, save, check `/theme.css`. Settings > Home page, Contact and social: fill and check the home page and footer.
+5. Site content > Menus: rename a link, add one, remove one. Pages: edit About, add a page `faq`, view `/faq`. Texts: change the hero title in English, check the home page; empty the box to restore.
+6. Complete a student profile (all required fields), then open `/students/<their ID>` and `/authors`. Switch Public addresses to the number mode and see the address change. Give someone a custom address on their user page.
+7. Profile rules tab: untick a field, save, check that a profile counts as complete.
+8. Backups: "Back up now", download the file, delete it. Check `data/backups` on the host.
+
+## Previous: Phase 1B+ (2026-11-25) - written, UNTESTED
 **Switchable sign-in ID system** (your request): Tech portal > Settings > Accounts and security.
 - Mode `university` (default): the person's university ID is the username, one unique ID per user, as before.
 - Mode `sequential`: the username is a fixed login number given when the account is created, counting up from 0 (0, 1, 2 ...), unique, never reused (even if an account is deleted later).
@@ -30,7 +52,7 @@ Last updated: 2026-11-25 (Phase 1B+ written: switchable sign-in ID system and th
 - **Principle: the Tech portal can do everything.** Any text, setting, limit, page, font, toggle or feature switch should be editable there instead of in code. Every new feature from now on ships with its Tech settings tab or section.
 
 ## Suggested next phases
-1. **1E-a Tech portal, part 2**: Fonts tab, Email (SMTP, with a test-email button), required-profile-fields tab, university details and the editable pages (about, contact, privacy, terms).
+1. **1E-a (done, see top)**. Remaining from it: Email (SMTP) tab with a test-email button.
 2. **1E-b Security**: 2FA (email and app), devices list, trusted devices.
 3. **1C Publishing**: article types, rich editor with autosave, review workflow, moderator tools.
 4. **1D Public site**: landing page polish, article pages, search, legal pages, share cards, RSS, PWA.
@@ -72,7 +94,7 @@ The sandbox has no PHP, so this was checked only by a static linter (brackets, m
 6. Open `/tech/audit` and confirm entries.
 
 ## Licensing
-AGPL-3.0-or-later. Still to do: add the `LICENSE` file (download from https://www.gnu.org/licenses/agpl-3.0.txt) and put a licence header in source files. Migration 003 adds the `source_repo_url` setting; the footer shows a source link when it is set.
+AGPL-3.0-or-later. `LICENSE` file is in the repo. Still to do: licence header in source files. Migration 003 adds the `source_repo_url` setting; the footer shows a source link when it is set.
 
 ## Test results so far
 User built it in Portainer: site loads. Bug found and fixed: in nginx, `set` must come before `rewrite ... break` (otherwise the proxy variable is empty), so fonts/icons did not load. Browser console messages about an inline script from 'sandbox eval code' and 'file:///' come from a browser extension, not the site.

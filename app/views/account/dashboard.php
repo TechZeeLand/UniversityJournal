@@ -26,6 +26,15 @@
         <p class="muted"><?= e(t('dash.card_profile_d')) ?></p>
         <p><a class="btn btn-primary btn-sm" href="/profile"><?= e(t('dash.edit_profile')) ?></a></p>
       </article>
+      <?php $pub = \App\Services\PublicUrl::path($u); if ($pub !== null): $vis = \App\Services\PublicUrl::visible($u + $p); ?>
+      <article class="card">
+        <span class="card-icon"><?= icon('link') ?></span>
+        <h3><?= e(t('dash.card_public')) ?></h3>
+        <p class="muted"><?= e(t($vis ? 'dash.public_on' : 'dash.public_off')) ?></p>
+        <p><code><?= e($pub) ?></code></p>
+        <?php if ($vis): ?><p><a class="btn btn-ghost btn-sm" href="<?= e($pub) ?>"><?= e(t('dash.public_view')) ?></a></p><?php endif; ?>
+      </article>
+      <?php endif; ?>
       <article class="card">
         <span class="card-icon"><?= icon('key-round') ?></span>
         <h3><?= e(t('pw.change_title')) ?></h3>

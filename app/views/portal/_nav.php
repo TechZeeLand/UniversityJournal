@@ -9,6 +9,8 @@ $items = [
 if (($actor['role'] ?? '') === 'tech_admin') {
     $items['tech'] = ['/tech', t('portal.tech_title')];
     $items['settings'] = ['/tech/settings', t('settings.title')];
+    $items['content'] = ['/tech/pages', t('tech.content')];
+    $items['backups'] = ['/tech/backups', t('backups.title')];
     $items['audit'] = ['/tech/audit', t('audit.title')];
 }
 ?>

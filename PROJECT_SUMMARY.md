@@ -1,6 +1,6 @@
 # University Journal: full summary
 
-Last updated: 2026-11-25. Status: Phase 1A built and deployed; Phase 1B (login and accounts) and Phase 1B+ (switchable sign-in ID system, first Tech portal settings) written, awaiting your build and test.
+Last updated: 2026-11-26. Status: Phase 1A built and deployed; Phases 1B, 1B+ and 1E-a (data folder, branding uploads, public addresses, editable site content) written, awaiting your build and test.
 
 ## 1. What the project is
 An article publishing site for your university where students and professors publish their work. It is a student initiative; university officials are not involved yet. Licence: **AGPL-3.0-or-later** (open source). Code lives on GitHub (also the backup) and is deployed by pulling the repo into Docker through Portainer's repository option, like your other projects.
@@ -53,15 +53,21 @@ I can't see my own token count, so I refresh `PROJECT.md` and `PROGRESS.md` afte
 - **The Tech portal can do everything (2026-11-25):** all texts, settings, limits, pages, toggles and all project fonts are editable there; each new feature ships with its settings.
 - **Working rules (2026-11-25):** I may make improvements, fix bugs along the way, ask questions, and I keep giving progress updates.
 
+- **One data folder (2026-11-26):** everything (database, uploads, backups) lives in `data/` in the project root (host variable `DATA_DIR`), so the project is portable and easy to back up. Never committed to git.
+- **Public addresses (2026-11-26):** students `/students/<university ID>`, teachers `/teachers/<public number>` (own serial, not the login number); switchable per role in the Tech portal, custom address per person possible. This replaces the earlier "IDs stay private" decision.
+- **Everything public is editable in the Tech portal (2026-11-26):** logo, icons, colours, fonts, home page, contact, menus, pages, and every text.
+- **Design stays consistent (2026-11-26).**
+
 ## 5. Phase plan
 | Phase | Scope | Status |
 |---|---|---|
 | 1A | Foundation: Docker, core PHP, schema, theme, i18n, fonts and icons mirrors | Done, deployed |
 | 1B+ | Switchable sign-in ID (university ID or login number from 0), Tech portal settings framework with Accounts, Uploads, Branding, General tabs | Written, needs your test |
 | 1B | Login with role redirect, lockout, forced password change, admin-created users (single and CSV), profile editing, required-fields gate, photos, password-reset approval | Written, needs your test |
+| 1E-a | One data folder, logo/icon uploads, brand colours, fonts tab, public addresses and profile pages, editable pages/menus/texts, profile rules, backups | Written, needs your test |
 | 1C | Article types, rich editor, submission workflow, moderator portal | Planned |
 | 1D | Landing page polish, article pages, search, about, contact, legal pages | Planned |
-| 1E-a | Tech portal part 2: Fonts tab, Email (SMTP) with test button, required-field toggles, university details, editable pages | Planned |
+| 1E-a2 | Email (SMTP) tab with test button | Planned |
 | 1E-b | Security: 2FA by email code and authenticator app, devices list, trusted devices | Planned (you asked me to note it and pick the phase) |
 | 2 | Community discussions, ads page, reviewer assignment, citations, versions, PDF export, analytics | Planned |
 | 3 | Further ideas from your ideas file (collections and journals, ORCID, collaboration, etc.) | Planned |

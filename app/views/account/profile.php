@@ -92,6 +92,13 @@ $isStudent = $u['role'] === 'student';
         <?= $fe('email') ?>
       </div>
 
+      <?php if (in_array($u['role'], ['student', 'teacher'], true)): ?>
+        <div class="field">
+          <label class="check"><input type="checkbox" name="is_public" value="1"<?= (string) ($old['is_public'] ?? '1') === '1' ? ' checked' : '' ?>> <?= e(t('profile.is_public')) ?></label>
+          <p class="field-hint"><?= e(t('profile.is_public_hint')) ?></p>
+        </div>
+      <?php endif; ?>
+
       <div class="actions"><button class="btn btn-primary" type="submit"><?= e(t('profile.save')) ?></button>
         <a class="btn btn-ghost" href="<?= e(\App\Core\Auth::homeFor($u['role'])) ?>"><?= e(t('ui.cancel')) ?></a></div>
     </form>

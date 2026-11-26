@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use App\Core\{Env, I18n, Settings};
+use App\Services\Branding;
 
 function e(mixed $s): string { return htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 
@@ -91,3 +92,37 @@ function avatar(array $row, string $cls = ''): string
 }
 
 function role_label(string $role): string { return t('role.' . $role); }
+
+/** A setting that has a Bangla twin (key + "_bn"): the Bangla value on the Bangla interface when filled in, else the main value. */
+function localized_setting(string $key, string $default = ''): string
+{
+    if (I18n::locale() === 'bn') {
+        $bn = trim((string) Settings::get($key . '_bn', ''));
+        if ($bn !== '') return $bn;
+    }
+    return trim((string) Settings::get($key, $default));
+}
+
+function site_name(): string { return localized_setting('site_name', 'University Journal'); }
+function site_tagline(): string { return localized_setting('site_tagline'); }
+function university_name(): string { return localized_setting('university_name'); }
+
+/** Web path of an uploaded brand picture (logo, logo_dark, icon, og), or null. */
+function brand_url(string $slot): ?string { return Branding::url($slot); }
+
+/** The header logo: uploaded picture(s) or the built-in mark. A separate dark-theme logo is swapped in automatically. */
+function brand_logo_html(): string
+{
+    $light = Branding::url('logo');
+    $dark = Branding::url('logo_dark');
+    if ($light === null && $dark === null) $light = asset('logo.svg');
+    $one = static fn(string $src, string $cls): string => '<img class="brand-logo' . ($cls !== '' ? ' ' . $cls : '') . '" src="' . e($src) . '" alt="" height="32">';
+    if ($light !== null && $dark !== null) return $one($light, 'only-light') . $one($dark, 'only-dark');
+    return $one((string) ($light ?? $dark), '');
+}
+
+/** A link target is safe to print: a path on this site, a web address or a mail link. */
+function safe_link(string $u, string $fallback = '/'): string
+{
+    return \App\Services\Menus::validUrl($u) ? $u : $fallback;
+}

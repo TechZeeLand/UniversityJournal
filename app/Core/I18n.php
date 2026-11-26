@@ -9,6 +9,9 @@ final class I18n
     private static string $locale = 'en';
     private static array $strings = [];
     private static array $fallback = [];
+    /** Texts edited in the Tech portal (Site content > Texts): [locale => [key => text]]. They win over the language files. */
+    private static array $ovr = [];
+    private static array $files = [];
 
     public static function init(): void
     {
@@ -17,6 +20,28 @@ final class I18n
         self::$locale = isset(self::LOCALES[$c]) ? $c : (isset(self::LOCALES[$default]) ? $default : 'en');
         self::$fallback = self::load('en');
         self::$strings = self::$locale === 'en' ? self::$fallback : self::load(self::$locale);
+        self::$ovr = self::loadOverrides(array_values(array_unique([self::$locale, 'en'])));
+    }
+
+    /** @param string[] $locales */
+    private static function loadOverrides(array $locales): array
+    {
+        $out = ['en' => [], 'bn' => []];
+        try {
+            $in = implode(',', array_fill(0, count($locales), '?'));
+            foreach (DB::all("SELECT locale, k, v FROM text_overrides WHERE locale IN ($in)", $locales) as $r) {
+                $out[$r['locale']][$r['k']] = (string) $r['v'];
+            }
+        } catch (\Throwable $e) {
+            // table not created yet or database not ready: use the language files only
+        }
+        return $out;
+    }
+
+    /** The built-in texts of a language, without Tech portal edits (the editor shows these as the defaults). */
+    public static function defaults(string $loc): array
+    {
+        return self::$files[$loc] ??= (isset(self::LOCALES[$loc]) ? self::load($loc) : []);
     }
 
     /** lang/<loc>.php plus every lang/<loc>/*.php, merged. */
@@ -42,7 +67,7 @@ final class I18n
 
     public static function t(string $key, array $repl = []): string
     {
-        $s = self::$strings[$key] ?? self::$fallback[$key] ?? $key;
+        $s = self::$ovr[self::$locale][$key] ?? self::$strings[$key] ?? self::$ovr['en'][$key] ?? self::$fallback[$key] ?? $key;
         foreach ($repl as $k => $v) {
             $s = str_replace('{' . $k . '}', (string) $v, $s);
         }

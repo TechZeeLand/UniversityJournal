@@ -78,6 +78,22 @@ final class Identity
         return (int) $n;
     }
 
+    /**
+     * Hand out the next public number (1, 2, 3 ...) to a student or teacher. These numbers appear in public
+     * addresses (/teachers/12) and are NOT the sign-in login number. Same rules: inside a transaction, never reused.
+     */
+    public static function nextPublicNo(): int
+    {
+        $n = DB::val("SELECT v FROM counters WHERE k = 'public_no' FOR UPDATE");
+        if ($n === null) {
+            $n = (int) DB::val('SELECT COALESCE(MAX(public_no), 0) + 1 FROM users');
+            DB::exec("INSERT INTO counters (k, v) VALUES ('public_no', ?)", [$n + 1]);
+            return $n;
+        }
+        DB::exec("UPDATE counters SET v = v + 1 WHERE k = 'public_no'");
+        return (int) $n;
+    }
+
     /** People who could not sign in if the mode were university: they have no university ID yet. */
     public static function withoutUid(): int
     {

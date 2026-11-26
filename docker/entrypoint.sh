@@ -11,18 +11,20 @@ case "$DB_PASSWORD" in
   *\'*|*\\*) echo "DB_PASSWORD must not contain ' or \\" >&2; exit 1 ;;
 esac
 
-mkdir -p /run/mysqld /var/lib/mysql \
-         /var/www/storage/uploads/public /var/www/storage/uploads/private \
-         /var/www/storage/cache /var/www/storage/logs
-chown -R mysql:mysql /run/mysqld /var/lib/mysql
-chown -R nginx:nginx /var/www/storage
+# One data folder for everything: /data (mounted from the host, see docker-compose.yml)
+mkdir -p /run/mysqld /data/db \
+         /data/uploads/public/avatars /data/uploads/public/branding /data/uploads/private \
+         /data/runtime/sessions /data/runtime/proxy-cache /data/runtime/logs /data/backups
+chown -R mysql:mysql /run/mysqld /data/db
+chmod 750 /data/db
+chown -R nginx:nginx /data/uploads /data/runtime /data/backups
 
-if [ ! -d /var/lib/mysql/mysql ]; then
-  echo "[init] Creating MariaDB data directory..."
-  mariadb-install-db --user=mysql --datadir=/var/lib/mysql --skip-test-db >/dev/null
+if [ ! -d /data/db/mysql ]; then
+  echo "[init] Creating MariaDB data directory in /data/db ..."
+  mariadb-install-db --user=mysql --datadir=/data/db --skip-test-db >/dev/null
 fi
 
-mariadbd --user=mysql --datadir=/var/lib/mysql --skip-networking --socket="$SOCK" &
+mariadbd --user=mysql --datadir=/data/db --skip-networking --socket="$SOCK" &
 DBPID=$!
 
 i=0
@@ -51,8 +53,7 @@ RESOLVER="${RESOLVER:-1.1.1.1}"
 case "$RESOLVER" in *:*) RESOLVER="[$RESOLVER]" ;; esac
 sed -e "s|__FONTS_HOST__|$FONTS_HOST|g" -e "s|__ICONS_HOST__|$ICONS_HOST|g" -e "s|__RESOLVER__|$RESOLVER|g" \
     /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
-mkdir -p /var/www/storage/proxy-cache
-chown -R nginx:nginx /var/www/storage
+chown -R nginx:nginx /data/runtime
 nginx -t
 
 mariadb-admin --socket="$SOCK" shutdown

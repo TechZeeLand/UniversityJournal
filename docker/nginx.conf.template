@@ -15,7 +15,7 @@ http {
   gzip on;
   resolver __RESOLVER__ valid=300s ipv6=off;
   resolver_timeout 5s;
-  proxy_cache_path /var/www/storage/proxy-cache levels=1:2 keys_zone=tzl:10m max_size=500m inactive=60d use_temp_path=off;
+  proxy_cache_path /data/runtime/proxy-cache levels=1:2 keys_zone=tzl:10m max_size=500m inactive=60d use_temp_path=off;
   gzip_types text/css application/javascript application/json image/svg+xml text/plain;
 
   server {
@@ -33,10 +33,12 @@ http {
     location ~ /\. { deny all; }
 
     # Public uploads (images etc). No PHP is ever executed here.
+    # Files are never treated as pages: the sandbox policy makes even an SVG with scripts inert if opened directly.
     location /uploads/ {
-      alias /var/www/storage/uploads/public/;
+      alias /data/uploads/public/;
       expires 7d;
       add_header X-Content-Type-Options nosniff always;
+      add_header Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox" always;
       location ~ \.php$ { return 403; }
     }
 

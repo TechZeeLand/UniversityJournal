@@ -84,6 +84,7 @@ final class AccountController
             'interests' => (string) ($p['interests'] ?? ''),
             'links' => implode("\n", self::decodeLinks($p['links'] ?? null)),
             'email' => (string) ($u['email'] ?? ''),
+            'is_public' => (string) ($p['is_public'] ?? '1'),
         ];
         self::showProfile($u, $old, (string) ($p['photo_path'] ?? ''), []);
     }
@@ -106,6 +107,7 @@ final class AccountController
             'interests' => mb_substr(post('interests'), 0, 500),
             'links' => post('links'),
             'email' => mb_substr(post('email'), 0, 190),
+            'is_public' => post('is_public') === '1' ? '1' : '0',
         ];
         // Students have a session, everyone else a designation; keep the other value untouched.
         if ($role === 'student') $in['designation'] = (string) ($p['designation'] ?? '');
@@ -158,16 +160,16 @@ final class AccountController
         }
 
         DB::exec(
-            'INSERT INTO user_profiles (user_id, full_name, full_name_bn, department_id, academic_session, designation, bio, interests, links, photo_path)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            'INSERT INTO user_profiles (user_id, full_name, full_name_bn, department_id, academic_session, designation, bio, interests, links, photo_path, is_public)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE full_name = VALUES(full_name), full_name_bn = VALUES(full_name_bn), department_id = VALUES(department_id),
                 academic_session = VALUES(academic_session), designation = VALUES(designation), bio = VALUES(bio),
-                interests = VALUES(interests), links = VALUES(links), photo_path = VALUES(photo_path)',
+                interests = VALUES(interests), links = VALUES(links), photo_path = VALUES(photo_path), is_public = VALUES(is_public)',
             [
                 $id, nn($in['full_name']), nn($in['full_name_bn']), $dept === null ? null : (int) $dept,
                 nn($in['academic_session']), nn($in['designation']), nn($in['bio']), nn($in['interests']),
                 $links ? json_encode($links, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null,
-                nn($photo),
+                nn($photo), (int) $in['is_public'],
             ]
         );
         DB::exec('UPDATE users SET email = ? WHERE id = ?', [nn($in['email']), $id]);

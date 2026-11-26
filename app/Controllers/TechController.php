@@ -1,8 +1,8 @@
 <?php
 namespace App\Controllers;
 
-use App\Core\{Audit, Auth, DB, Flash, Identity, Settings, View};
-use App\Services\TechSettings;
+use App\Core\{Audit, Auth, DB, Flash, Identity, Paths, Settings, View};
+use App\Services\{Backups, Branding, FontList, Profile, TechSettings};
 
 /** Tech portal (tech admins only). Phase 1E adds the full settings editor here. */
 final class TechController
@@ -10,7 +10,7 @@ final class TechController
     public static function index(): void
     {
         $actor = Auth::needRole('tech_admin');
-        $storage = '/var/www/storage';
+        $storage = Paths::data();
         View::render('tech/index', [
             'title' => t('portal.tech_title'),
             'actor' => $actor,
@@ -18,7 +18,9 @@ final class TechController
                 'PHP' => PHP_VERSION,
                 'Database' => (string) DB::val('SELECT VERSION()'),
                 'Migrations' => (string) (int) DB::val('SELECT COUNT(*) FROM migrations'),
-                'Storage free' => fmt_bytes((float) @disk_free_space($storage)) . ' / ' . fmt_bytes((float) @disk_total_space($storage)),
+                'Data folder' => $storage,
+                'Disk free' => fmt_bytes((float) @disk_free_space($storage)) . ' / ' . fmt_bytes((float) @disk_total_space($storage)),
+                'Latest backup' => ($b = Backups::list()) ? fmt_dt(date('Y-m-d H:i:s', $b[0]['time'])) . ' (' . $b[0]['name'] . ')' : '—',
                 'Time zone' => date_default_timezone_get() . ' (' . date('P') . ')',
                 'Server time' => date('Y-m-d H:i:s'),
             ],
@@ -76,7 +78,9 @@ final class TechController
             self::showSettings($actor, $group, $vals, $errors);
             return;
         }
-        Flash::add('ok', TechSettings::save($group, $vals) > 0 ? t('set.saved') : t('set.nochange'));
+        $n = TechSettings::save($group, $vals);
+        if ($n > 0 && $group === 'profiles') Profile::recalcAll();     // who counts as "complete" depends on these rules
+        Flash::add('ok', $n > 0 ? t('set.saved') : t('set.nochange'));
         redirect('/tech/settings/' . $group);
     }
 
@@ -94,7 +98,35 @@ final class TechController
         View::render('tech/settings', [
             'title' => t('settings.title'), 'actor' => $actor, 'group' => $group, 'groups' => TechSettings::groups(),
             'fields' => TechSettings::groups()[$group]['fields'], 'values' => $values, 'errors' => $errors, 'idInfo' => $idInfo,
+            'fontNames' => $group === 'fonts' ? FontList::names() : [],
+            'maxMb' => max(1, (int) setting('upload_max_image_mb', '5')),
         ]);
+    }
+
+    /** Upload or remove one brand picture (logo, dark logo, icon, share picture). */
+    public static function brandingSave(string $slot): void
+    {
+        Auth::needRole('tech_admin');
+        if (!in_array($slot, Branding::SLOTS, true)) abort(404);
+        if (post('do') === 'remove') {
+            Branding::remove($slot);
+            Audit::log('branding.removed', $slot);
+            Flash::add('ok', t('brand.removed'));
+            redirect('/tech/settings/branding');
+        }
+        $file = $_FILES['file'] ?? null;
+        if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            Flash::add('error', t('brand.err_none'));
+            redirect('/tech/settings/branding');
+        }
+        try {
+            $path = Branding::store($slot, $file);
+            Audit::log('branding.updated', $slot, $path);
+            Flash::add('ok', t('brand.saved'));
+        } catch (\RuntimeException $e) {
+            Flash::add('error', t('brand.' . $e->getMessage(), ['mb' => max(1, (int) setting('upload_max_image_mb', '5'))]));
+        }
+        redirect('/tech/settings/branding');
     }
 
     /** Switch between university IDs and generated login numbers. Guarded so nobody can be locked out. */

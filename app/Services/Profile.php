@@ -36,6 +36,18 @@ final class Profile
         return $ok;
     }
 
+    /** Recompute everybody's completeness (after the required fields were changed in the Tech portal). @return int people checked */
+    public static function recalcAll(): int
+    {
+        @set_time_limit(300);
+        $n = 0;
+        foreach (DB::all('SELECT user_id FROM user_profiles') as $r) {
+            self::recalc((int) $r['user_id']);
+            $n++;
+        }
+        return $n;
+    }
+
     /** @return array<string, array<int, array{id:int,name:string}>> departments grouped by faculty, in the current language */
     public static function departments(): array
     {

@@ -1,4 +1,8 @@
 # Portainer: Stacks > Add stack > Repository. Set the variables below in the stack's environment section.
+#
+# ALL data of this site (database, uploads, backups) lives in ONE folder on the host: DATA_DIR
+# (default: the "data" folder next to this file). Copy that folder and you have copied the whole site.
+# On Portainer, set DATA_DIR to an absolute host path, e.g. /srv/university-journal/data (see README).
 services:
   app:
     build: .
@@ -21,8 +25,4 @@ services:
       ICONS_HOST: ${ICONS_HOST:-icons.rayaz.org}
       FONTS_HOST: ${FONTS_HOST:-fonts.rayaz.org}
     volumes:
-      - journal-db:/var/lib/mysql
-      - journal-storage:/var/www/storage
-volumes:
-  journal-db:
-  journal-storage:
+      - ${DATA_DIR:-./data}:/data

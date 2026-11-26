@@ -33,8 +33,8 @@ final class Auth
         }
 
         $row = DB::one(
-            'SELECT u.id, u.uid, u.serial_no, u.public_id, u.role, u.status, u.must_change_password, u.email, u.auth_epoch,
-                    p.full_name, p.full_name_bn, p.photo_path, p.profile_complete
+            'SELECT u.id, u.uid, u.serial_no, u.public_id, u.public_no, u.public_slug, u.role, u.status, u.must_change_password, u.email, u.auth_epoch,
+                    p.full_name, p.full_name_bn, p.photo_path, p.profile_complete, p.is_public
                FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id WHERE u.id = ?',
             [$id]
         );

@@ -2,13 +2,13 @@
 declare(strict_types=1);
 namespace App\Services;
 
-use App\Core\Settings;
+use App\Core\{Paths, Settings};
 
 /** Profile photos: validated, re-encoded as a 512x512 square JPEG (strips metadata and any hidden payload). */
 final class Avatar
 {
     private const MAX_PIXELS = 24000000;
-    private const DIR = '/var/www/storage/uploads/public/avatars';
+    private static function dir(): string { return Paths::uploads('avatars'); }
 
     /**
      * Process an uploaded file ($_FILES entry) and return its path relative to the public uploads folder.
@@ -43,17 +43,17 @@ final class Avatar
         imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
         imagecopyresampled($dst, $src, 0, 0, intdiv($w - $side, 2), intdiv($h - $side, 2), 512, 512, $side, $side);
 
-        if (!is_dir(self::DIR) && !mkdir(self::DIR, 0755, true) && !is_dir(self::DIR)) throw new \RuntimeException('err_photo_upload');
+        if (!is_dir(self::dir()) && !mkdir(self::dir(), 0755, true) && !is_dir(self::dir())) throw new \RuntimeException('err_photo_upload');
         $name = $userId . '-' . bin2hex(random_bytes(5)) . '.jpg';
-        if (!imagejpeg($dst, self::DIR . '/' . $name, 86)) throw new \RuntimeException('err_photo_upload');
-        @chmod(self::DIR . '/' . $name, 0644);
+        if (!imagejpeg($dst, self::dir() . '/' . $name, 86)) throw new \RuntimeException('err_photo_upload');
+        @chmod(self::dir() . '/' . $name, 0644);
         return 'avatars/' . $name;
     }
 
     public static function delete(?string $rel): void
     {
         if ($rel !== null && preg_match('#^avatars/[A-Za-z0-9._-]+\.jpg$#', $rel) === 1) {
-            @unlink(self::DIR . '/' . basename($rel));
+            @unlink(self::dir() . '/' . basename($rel));
         }
     }
 

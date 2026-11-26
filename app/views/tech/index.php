@@ -3,12 +3,18 @@
     <h1 class="h-md"><?= e(t('portal.tech_title')) ?></h1>
     <?php \App\Core\View::partial('portal/_nav', ['active' => 'tech', 'actor' => $actor]); ?>
     <div class="grid">
-      <article class="card"><span class="card-icon"><?= icon('users') ?></span><h3><?= e(t('users.title')) ?></h3>
-        <p class="muted"><?= e(t('tech.users_d')) ?></p><p><a class="btn btn-primary btn-sm" href="/moderator/users"><?= e(t('tech.open')) ?></a></p></article>
-      <article class="card"><span class="card-icon"><?= icon('scroll-text') ?></span><h3><?= e(t('audit.title')) ?></h3>
-        <p class="muted"><?= e(t('tech.audit_d')) ?></p><p><a class="btn btn-primary btn-sm" href="/tech/audit"><?= e(t('tech.open')) ?></a></p></article>
-      <article class="card"><span class="card-icon"><?= icon('shield-check') ?></span><h3><?= e(t('tech.settings')) ?></h3>
-        <p class="muted"><?= e(t('tech.settings_d')) ?></p><p><a class="btn btn-primary btn-sm" href="/tech/settings"><?= e(t('tech.open')) ?></a></p></article>
+      <?php
+      $cards = [
+        ['users', 'users.title', 'tech.users_d', '/moderator/users'],
+        ['settings', 'tech.settings', 'tech.settings_d', '/tech/settings'],
+        ['file-text', 'tech.content', 'tech.content_d', '/tech/pages'],
+        ['hard-drive', 'backups.title', 'tech.backups_d', '/tech/backups'],
+        ['scroll-text', 'audit.title', 'tech.audit_d', '/tech/audit'],
+      ];
+      foreach ($cards as [$ic, $title, $desc, $href]): ?>
+        <article class="card"><span class="card-icon"><?= icon($ic) ?></span><h3><?= e(t($title)) ?></h3>
+          <p class="muted"><?= e(t($desc)) ?></p><p><a class="btn btn-primary btn-sm" href="<?= e($href) ?>"><?= e(t('tech.open')) ?></a></p></article>
+      <?php endforeach; ?>
     </div>
     <h2 class="h-sm"><?= e(t('tech.system')) ?></h2>
     <div class="card pad"><dl class="kv">

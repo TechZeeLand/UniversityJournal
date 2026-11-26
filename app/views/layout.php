@@ -1,10 +1,16 @@
 <?php
-use App\Core\{Auth, Csrf, Flash, I18n};
+use App\Core\{Auth, Csrf, Flash, I18n, Theme};
+use App\Services\{Branding, Menus};
 $cu = Auth::user();
 $loc = I18n::locale();
-$site = setting('site_name', 'University Journal');
-$title = ($pageTitle ?? null) ? $pageTitle . ' · ' . $site : $site . ' · ' . setting('site_tagline', '');
-$nav = ['home' => '/', 'explore' => '/explore', 'authors' => '/authors', 'departments' => '/departments', 'collections' => '/collections', 'about' => '/about'];
+$site = site_name();
+$tagline = site_tagline();
+$title = ($pageTitle ?? null) ? $pageTitle . ' · ' . $site : ($tagline !== '' ? $site . ' · ' . $tagline : $site);
+$icon = Branding::url('icon');
+$iconType = $icon !== null ? Branding::mime('icon') : 'image/svg+xml';
+$og = Branding::url('og');
+$origin = rtrim((string) \App\Core\Env::get('APP_URL', ''), '/');
+$social = ['facebook' => 'Facebook', 'x' => 'X', 'youtube' => 'YouTube', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'github' => 'GitHub', 'telegram' => 'Telegram'];
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $otherLang = $loc === 'en' ? 'bn' : 'en';
 ?>
@@ -14,24 +20,34 @@ $otherLang = $loc === 'en' ? 'bn' : 'en';
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e($title) ?></title>
-  <meta name="description" content="<?= e(setting('site_tagline', '')) ?>">
-  <link rel="icon" href="<?= asset('logo.svg') ?>" type="image/svg+xml">
+  <meta name="description" content="<?= e($tagline) ?>">
+  <meta name="theme-color" content="<?= e(Theme::primary()) ?>">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="<?= e($site) ?>">
+  <meta property="og:title" content="<?= e($title) ?>">
+  <meta property="og:description" content="<?= e($tagline) ?>">
+<?php if ($og !== null): ?>  <meta property="og:image" content="<?= e($origin . $og) ?>">
+  <meta name="twitter:card" content="summary_large_image">
+<?php endif; ?>
+  <link rel="icon" href="<?= e($icon ?? asset('logo.svg')) ?>" type="<?= e($iconType) ?>">
+<?php if ($icon !== null && $iconType === 'image/png'): ?>  <link rel="apple-touch-icon" href="<?= e($icon) ?>">
+<?php endif; ?>
   <script src="<?= asset('js/theme-init.js') ?>"></script>
   <link rel="stylesheet" href="<?= e(icons_base()) ?>/zi.css">
   <link rel="stylesheet" href="<?= e(\App\Core\Fonts::cssUrl()) ?>">
   <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
-  <link rel="stylesheet" href="/theme.css?v=<?= e(\App\Core\Fonts::version()) ?>">
+  <link rel="stylesheet" href="/theme.css?v=<?= e(Theme::version()) ?>">
   <script src="<?= asset('js/app.js') ?>" defer></script>
 </head>
 <body>
   <a class="skip" href="#main"><?= e(t('ui.skip')) ?></a>
   <header class="site-header">
     <div class="wrap bar">
-      <a class="brand" href="/"><img src="<?= asset('logo.svg') ?>" alt="" width="32" height="32"><span><?= e($site) ?></span></a>
+      <a class="brand" href="/"><?= brand_logo_html() ?><span<?= setting('brand_show_name', '1') === '1' ? '' : ' class="sr-only"' ?>><?= e($site) ?></span></a>
       <button class="icon-btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav" aria-label="<?= e(t('ui.menu')) ?>"><?= icon('menu') ?></button>
       <nav id="nav" class="nav" aria-label="Main">
-        <?php foreach ($nav as $key => $href): ?>
-          <a href="<?= $href ?>"<?= $path === $href ? ' aria-current="page"' : '' ?>><?= e(t('nav.' . $key)) ?></a>
+        <?php foreach (Menus::items('header') as $m): $ext = Menus::external($m['url']); ?>
+          <a href="<?= e($m['url']) ?>"<?= $path === $m['url'] ? ' aria-current="page"' : '' ?><?= $ext ? ' rel="noopener"' : '' ?>><?= e($m['label']) ?></a>
         <?php endforeach; ?>
       </nav>
       <div class="tools">
@@ -64,17 +80,18 @@ $otherLang = $loc === 'en' ? 'bn' : 'en';
       <div>
         <strong><?= e($site) ?></strong>
         <p class="muted"><?= e(t('footer.note')) ?></p>
+        <?php $soc = array_filter($social, fn($k) => preg_match('#^https?://#i', (string) setting('social_' . $k, '')) === 1, ARRAY_FILTER_USE_KEY); if ($soc): ?>
+          <p class="social"><?php foreach ($soc as $k => $label): ?><a href="<?= e(setting('social_' . $k)) ?>" rel="noopener me" target="_blank"><?= e($label) ?></a><?php endforeach; ?></p>
+        <?php endif; ?>
       </div>
       <nav aria-label="Footer">
-        <a href="/about"><?= e(t('nav.about')) ?></a>
-        <a href="/contact"><?= e(t('nav.contact')) ?></a>
-        <a href="/advertise"><?= e(t('nav.advertise')) ?></a>
-        <a href="/privacy"><?= e(t('nav.privacy')) ?></a>
-        <a href="/terms"><?= e(t('nav.terms')) ?></a>
+        <?php foreach (Menus::items('footer') as $m): ?>
+          <a href="<?= e($m['url']) ?>"<?= Menus::external($m['url']) ? ' rel="noopener"' : '' ?>><?= e($m['label']) ?></a>
+        <?php endforeach; ?>
         <?php if ($src = setting('source_repo_url')): ?><a href="<?= e($src) ?>" rel="noopener"><?= e(t('footer.source')) ?></a><?php endif; ?>
       </nav>
     </div>
-    <div class="wrap copy muted">© <?= date('Y') ?> <?= e(setting('university_name', '')) ?>. <?= e(t('footer.rights')) ?></div>
+    <div class="wrap copy muted">© <?= date('Y') ?> <?= e(university_name()) ?>. <?= e(t('footer.rights')) ?></div>
   </footer>
 </body>
 </html>

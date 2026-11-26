@@ -26,7 +26,6 @@ return [
   'id.switched_seq' => 'Switched to login numbers. Your own login number is {id}.',
   'id.switched_uni' => 'Switched to university IDs. Your own university ID is {id}.',
 
-  'tech.settings_d' => 'Sign-in ID system, security limits, uploads, branding and defaults. Fonts, email and pages arrive in the next Tech portal update.',
   'settings.title' => 'Settings',
   'settings.tabs' => 'Settings sections',
   'settings.tab.accounts' => 'Accounts and security',

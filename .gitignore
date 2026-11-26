@@ -1,4 +1,9 @@
 .env
+# The data folder holds the live database, uploads and backups: never commit it.
+/data/*
+!/data/.gitkeep
+!/data/README.md
+# old layout
 storage/*
 !storage/.gitkeep
 *.log

@@ -54,3 +54,11 @@ $lockRole = $lockRole ?? false;
     <input id="designation" name="designation" type="text" maxlength="120" value="<?= e($old['designation'] ?? '') ?>">
   </div>
 </div>
+<?php if (!empty($canSlug)): ?>
+<div class="field">
+  <label for="public_slug"><?= e(t('users.public_slug')) ?></label>
+  <input id="public_slug" name="public_slug" type="text" maxlength="40" value="<?= e($old['public_slug'] ?? '') ?>" autocapitalize="none" spellcheck="false" placeholder="<?= e(t('users.public_slug_ph')) ?>">
+  <p class="field-hint"><?= e(t('users.public_slug_hint')) ?></p>
+  <?php if (!empty($slugError)): ?><p class="field-error" role="alert"><?= e($slugError) ?></p><?php endif; ?>
+</div>
+<?php endif; ?>

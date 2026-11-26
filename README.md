@@ -18,7 +18,12 @@ Because this is AGPL software, if you run a modified version as a public website
 5. Point your reverse proxy (with HTTPS) at the host port `HTTP_PORT` (default 8090).
 6. Updates: push to GitHub, then in Portainer open the stack and choose "Pull and redeploy". Optionally turn on the stack's GitHub webhook or automatic updates.
 
-Data lives in the volumes `journal-db` and `journal-storage`. Back them up.
+### Where the data lives
+ALL data (database, uploads, backups) is in one folder on the host, `DATA_DIR` (default: the `data/` folder next to `docker-compose.yml`). See `data/README.md`. Copy that folder to back up or move the whole site. The database is also dumped automatically into `data/backups/` (Tech portal > Settings > Backups).
+
+**Portainer:** a relative `./data` points inside Portainer's own checkout of the repository, which is not a good place for data. Set the stack variable `DATA_DIR` to an absolute folder on the host, for example `/srv/university-journal/data`, and create it first (`mkdir -p`).
+
+**Coming from the old layout** (named volumes `journal-db` and `journal-storage`)? Copy their content once: `docker run --rm -v journal-db:/from -v /srv/university-journal/data/db:/to alpine cp -a /from/. /to/` and `docker run --rm -v journal-storage:/from -v /srv/university-journal/data:/to alpine sh -c 'mkdir -p /to/uploads && cp -a /from/uploads/public /to/uploads/'`. Or start fresh if you only have test data.
 
 ## Local run
 `docker compose --env-file .env up --build`

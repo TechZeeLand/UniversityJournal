@@ -157,6 +157,7 @@ final class ModeratorController
             return;
         }
 
+        if ($actor['role'] !== 'tech_admin') unset($clean['public_slug']);       // only tech admins set custom public addresses
         Users::update((int) $row['id'], $clean);
         $changes = [];
         if ($clean['uid'] !== (string) $row['uid']) $changes[] = 'uid: ' . $row['uid'] . ' -> ' . $clean['uid'];
@@ -203,11 +204,11 @@ final class ModeratorController
             'uid' => (string) $row['uid'], 'role' => $row['role'], 'email' => (string) $row['email'],
             'full_name' => (string) $row['full_name'], 'full_name_bn' => (string) $row['full_name_bn'],
             'department_id' => (string) $row['department_id'], 'academic_session' => (string) $row['academic_session'],
-            'designation' => (string) $row['designation'],
+            'designation' => (string) $row['designation'], 'public_slug' => (string) $row['public_slug'],
         ];
         View::render('portal/user_show', [
             'title' => display_name($row), 'actor' => $actor, 'target' => $row, 'old' => $old, 'error' => $error, 'self' => $self,
-            'roles' => Users::assignableRoles($actor), 'departments' => Profile::departments(),
+            'roles' => Users::assignableRoles($actor), 'departments' => Profile::departments(), 'canSlug' => $actor['role'] === 'tech_admin',
             'missing' => Profile::missing(DB::one('SELECT * FROM user_profiles WHERE user_id = ?', [(int) $row['id']]) ?: [], $row['role']),
         ]);
     }
@@ -225,6 +226,7 @@ final class ModeratorController
             'academic_session' => mb_substr(post('academic_session'), 0, 40),
             'designation' => mb_substr(post('designation'), 0, 120),
             'email' => mb_substr(post('email'), 0, 190),
+            'public_slug' => mb_strtolower(mb_substr(post('public_slug'), 0, 40)),
         ];
     }
 
@@ -239,6 +241,10 @@ final class ModeratorController
             $err = t('users.err_uid');
         } elseif (Users::uidTaken($in['uid'], $exceptId)) {
             $err = t('users.err_uid_taken');
+        } elseif ($actor['role'] === 'tech_admin' && $in['public_slug'] !== '' && !\App\Services\PublicUrl::validSlug($in['public_slug'])) {
+            $err = t('users.err_slug');
+        } elseif ($actor['role'] === 'tech_admin' && \App\Services\PublicUrl::slugTaken($in['public_slug'], $exceptId)) {
+            $err = t('users.err_slug_taken');
         } elseif (!in_array($in['role'], Users::assignableRoles($actor), true)) {
             $err = t('users.err_role');
         } elseif ($in['full_name'] === '') {

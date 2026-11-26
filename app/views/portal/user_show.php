@@ -12,6 +12,11 @@
         <p class="muted small"><?= e(t('id.both', ['uid' => ((string) $target['uid'] !== '' ? $target['uid'] : '—'), 'no' => (string) $target['serial_no']])) ?></p>
         <p class="muted small"><?= e(t('users.created_at', ['d' => fmt_dt($target['created_at'])])) ?> · <?= e(t('users.th_last_login')) ?>: <?= e(fmt_dt($target['last_login_at'])) ?>
           <?= (int) $target['must_change_password'] === 1 ? ' · ' . e(t('users.must_change')) : '' ?></p>
+        <?php if ($pubPath = \App\Services\PublicUrl::path($target)): $pubOn = \App\Services\PublicUrl::visible($target + (\App\Core\DB::one('SELECT profile_complete, is_public FROM user_profiles WHERE user_id = ?', [(int) $target['id']]) ?: [])); ?>
+          <p class="small"><?= icon('link') ?> <?= e(t('users.public_addr')) ?>: <code id="pubaddr"><?= e($pubPath) ?></code>
+            <span class="badge <?= $pubOn ? 'badge-ok' : '' ?>"><?= e(t($pubOn ? 'users.public_live' : 'users.public_hidden')) ?></span>
+            <?php if (!empty($target['public_no'])): ?><span class="muted"> · <?= e(t('users.public_no', ['n' => $target['public_no']])) ?></span><?php endif; ?></p>
+        <?php endif; ?>
         <?php if (in_array($target['role'], ['student', 'teacher'], true)): ?>
           <p class="small"><?= $missing ? '<span class="muted">' . e(t('dash.profile_missing', ['list' => implode(', ', array_map(fn($f) => t('profile.f.' . $f), $missing))])) . '</span>' : icon('circle-check') . ' ' . e(t('dash.profile_done')) ?></p>
         <?php endif; ?>
@@ -22,7 +27,7 @@
     <form method="post" action="/moderator/users/<?= (int) $target['id'] ?>" class="form card pad">
       <?= \App\Core\Csrf::field() ?>
       <h2 class="h-sm"><?= e(t('users.edit')) ?></h2>
-      <?php \App\Core\View::partial('portal/_user_fields', ['old' => $old, 'roles' => $roles, 'departments' => $departments, 'lockRole' => $self]); ?>
+      <?php \App\Core\View::partial('portal/_user_fields', ['old' => $old, 'roles' => $roles, 'departments' => $departments, 'lockRole' => $self, 'canSlug' => !empty($canSlug)]); ?>
       <div class="actions"><button class="btn btn-primary" type="submit"><?= e(t('ui.save')) ?></button></div>
     </form>
 
