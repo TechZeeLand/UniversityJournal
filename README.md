@@ -1,12 +1,12 @@
 # University Journal
 
-An open-source article publishing platform for a university, licensed under the GNU AGPL-3.0-or-later.
+An open-source article publishing platform for a university, licensed under the GNU GPL-3.0-or-later.
 See PROJECT.md for the overview and PROGRESS.md for status.
 
 ## Licence
-Copyright (C) the University Journal contributors. This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed WITHOUT ANY WARRANTY. See https://www.gnu.org/licenses/agpl-3.0.html.
+Copyright (C) the University Journal contributors. This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed WITHOUT ANY WARRANTY; see the file LICENSE.
 
-Because this is AGPL software, if you run a modified version as a public website you must offer your visitors the source code of your version. Set the repository address under Settings > Legal (`source_repo_url`) and the footer will link to it.
+Under the GPL you must give recipients of a copy (a download, a Docker image) the source code under the same licence. Running a modified version only as a website does not oblige you to publish it. If you want to link your source anyway, set the repository address under Settings > Branding (`source_repo_url`) and the footer will show a link.
 
 ## Deploy with Portainer (from GitHub)
 1. Push this repo to GitHub (public is fine; never commit a real `.env`).

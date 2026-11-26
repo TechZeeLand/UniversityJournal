@@ -3,7 +3,7 @@
 Last updated: 2026-11-26. Status: Phase 1A built and deployed; Phases 1B, 1B+ and 1E-a (data folder, branding uploads, public addresses, editable site content) written, awaiting your build and test.
 
 ## 1. What the project is
-An article publishing site for your university where students and professors publish their work. It is a student initiative; university officials are not involved yet. Licence: **AGPL-3.0-or-later** (open source). Code lives on GitHub (also the backup) and is deployed by pulling the repo into Docker through Portainer's repository option, like your other projects.
+An article publishing site for your university where students and professors publish their work. It is a student initiative; university officials are not involved yet. Licence: **GPL-3.0-or-later** (open source). Code lives on GitHub (also the backup) and is deployed by pulling the repo into Docker through Portainer's repository option, like your other projects.
 
 ## 2. Your requests (original brief)
 **Stack:** HTML, CSS, JS, PHP, SQL, MariaDB and whatever else is needed. MariaDB and nginx are baked into the container.
@@ -43,7 +43,7 @@ I can't see my own token count, so I refresh `PROJECT.md` and `PROGRESS.md` afte
 - **Fonts:** from your fonts service, mirrored and cached by the site's own nginx (`/tzl-fonts/`). Chosen in the Tech portal (body, heading, Bangla, Arabic, weights). Defaults: Open Sans, Young Serif, Noto Sans Bengali, Noto Naskh Arabic.
 - **Icons:** from your icons service through a cached mirror (`/icons-cdn/`). Visitors make no third-party requests.
 - **Required profile fields:** configurable per role in the Tech portal. Defaults: full name, department, photo, bio, plus session (students) or designation (teachers).
-- **Licence:** AGPL-3.0-or-later. Footer shows a "Source code" link when the `source_repo_url` setting is set (AGPL section 13). Never commit secrets; `.env` is git-ignored.
+- **Licence:** GPL-3.0-or-later (was AGPL until 2026-11-27). Footer shows an optional "Source code" link when the `source_repo_url` setting is set. Never commit secrets; `.env` is git-ignored.
 - **Approved defaults:** placeholder branding "University Journal" (editable in the Tech portal); SMTP configured in the Tech portal; self-managed ad slots; optional TOTP 2FA for the tech admin; configurable upload limits (default 5 MB images, 20 MB attachments); password resets approved by an admin (email if SMTP is set); editor screening with review labels in Phase 1, full peer review in Phase 2; placeholder faculties and departments.
 - **Roles** are stored as text (student, teacher, moderator, tech_admin) so reviewer, editor and department admin can be added later without a schema change.
 - **Student IDs** stay private by default (from your ideas file).
@@ -65,8 +65,8 @@ I can't see my own token count, so I refresh `PROJECT.md` and `PROGRESS.md` afte
 | 1B+ | Switchable sign-in ID (university ID or login number from 0), Tech portal settings framework with Accounts, Uploads, Branding, General tabs | Written, needs your test |
 | 1B | Login with role redirect, lockout, forced password change, admin-created users (single and CSV), profile editing, required-fields gate, photos, password-reset approval | Written, needs your test |
 | 1E-a | One data folder, logo/icon uploads, brand colours, fonts tab, public addresses and profile pages, editable pages/menus/texts, profile rules, backups | Written, needs your test |
-| 1C | Article types, rich editor, submission workflow, moderator portal | Planned |
-| 1D | Landing page polish, article pages, search, about, contact, legal pages | Planned |
+| 1C | Article types, editor, submission workflow, moderator review queue | First slice written (2026-11-27), needs your test |
+| 1D | Newspaper home, explore with filters, article page, likes/dislikes/comments/share, reader accounts (email + Google) | First slice written (2026-11-27), needs your test |
 | 1E-a2 | Email (SMTP) tab with test button | Planned |
 | 1E-b | Security: 2FA by email code and authenticator app, devices list, trusted devices | Planned (you asked me to note it and pick the phase) |
 | 2 | Community discussions, ads page, reviewer assignment, citations, versions, PDF export, analytics | Planned |
@@ -91,7 +91,7 @@ Phase 1A:
 5. Browser console messages about an inline script from "sandbox eval code", the `file:///` warning and Open Sans "kern table" warnings are harmless and not caused by the site.
 
 ## 8. Deploy steps (brief)
-1. Add the AGPL `LICENSE` file (`curl -o LICENSE https://www.gnu.org/licenses/agpl-3.0.txt`), push the repo to GitHub.
+1. The GPL-3.0 `LICENSE` file is already in the zip. Push the repo to GitHub.
 2. Portainer: Stacks, Add stack, Repository. Reference `refs/heads/main`, compose path `docker-compose.yml`.
 3. Set `APP_URL`, `APP_KEY`, `DB_PASSWORD`, `INITIAL_ADMIN_UID`, `INITIAL_ADMIN_PASSWORD`.
 4. Put an HTTPS reverse proxy in front of `HTTP_PORT` (default 8090).
@@ -109,3 +109,7 @@ Data lives in the volumes `journal-db` and `journal-storage`; back them up.
 - Untested areas so far: everything in Phase 1B (login, uploads, CSV import, resets), SMTP and 2FA (not built yet).
 - Test Phase 1B with the checklist in PROGRESS.md and send me any error output.
 - Add the 18 icons in new-icons-1b/ that your set lacks.
+
+## 10. Your requests of 2026-11-26/27 (recorded, built in this order)
+1. Switch to the GPL licence. 2. Home page: latest ~20 articles below the cards, in an interesting newspaper style. 3. Explore page filters: by date, new-to-old, old-to-new, most-rated, most-read and similar. 4. People can like, dislike, comment on and share articles. 5. People outside the university can create reader-only accounts (read, like, dislike, comment) with plain email or Google OAuth, configurable from the Tech portal. 6. Make all pages attractive, the home page especially.
+You also asked me to record these decisions in the progress and project files, do the work in that order when I see fit, make improvements, ask questions when needed, fix bugs on the way and keep reporting progress. See PROGRESS.md (top section) for what was built and the test checklist.

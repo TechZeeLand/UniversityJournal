@@ -21,5 +21,5 @@ return [
   'error.404_title' => 'Page not found', 'error.404_msg' => 'The page you are looking for does not exist or has moved.',
   'error.500_title' => 'Something went wrong', 'error.500_msg' => 'An unexpected error occurred. Please try again shortly.',
   'error.csrf_title' => 'Session expired', 'error.csrf_msg' => 'Your form session has expired. Please go back, refresh the page and try again.',
-  'footer.rights' => 'All rights reserved.', 'footer.source' => 'Source code (AGPL-3.0)', 'footer.note' => 'A student-run publication.',
+  'footer.rights' => 'All rights reserved.', 'footer.source' => 'Source code (GPL-3.0)', 'footer.note' => 'A student-run publication.',
 ];

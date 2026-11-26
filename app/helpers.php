@@ -126,3 +126,74 @@ function safe_link(string $u, string $fallback = '/'): string
 {
     return \App\Services\Menus::validUrl($u) ? $u : $fallback;
 }
+
+/** Full web address for a site path: APP_URL when set, else built from the request (for share links and meta tags). */
+function abs_url(string $path = '/'): string
+{
+    $base = rtrim((string) Env::get('APP_URL', ''), '/');
+    if ($base === '') {
+        $https = ($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off' || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+        $host = preg_replace('/[^A-Za-z0-9.:-]/', '', (string) ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+        $base = ($https ? 'https' : 'http') . '://' . $host;
+    }
+    return $base . '/' . ltrim($path, '/');
+}
+
+/** Relative time in the interface language: "5 minutes ago", else the date. */
+function time_ago(?string $s): string
+{
+    $ts = $s ? strtotime($s) : false;
+    if (!$ts) return '';
+    $d = time() - $ts;
+    if ($d < 60) return t('time.now');
+    if ($d < 3600) return t('time.min', ['n' => (int) floor($d / 60)]);
+    if ($d < 86400) return t('time.hour', ['n' => (int) floor($d / 3600)]);
+    if ($d < 86400 * 7) return t('time.day', ['n' => (int) floor($d / 86400)]);
+    return fmt_date($s);
+}
+
+/** A readable date like "26 Nov 2026" (month names from the language files). */
+function fmt_date(?string $s): string
+{
+    $ts = $s ? strtotime($s) : false;
+    if (!$ts) return '';
+    return date('j', $ts) . ' ' . t('month.' . date('n', $ts)) . ' ' . date('Y', $ts);
+}
+
+/** Digits in the interface language (Bangla digits on the Bangla interface). */
+function num(int|float|string $n): string
+{
+    $s = number_format((float) $n, 0, '.', '');
+    return I18n::locale() === 'bn' ? strtr($s, '0123456789', '০১২৩৪৫৬৭৮৯') : $s;
+}
+
+/** Same as num(), but 1200 becomes 1.2K. */
+function num_short(int $n): string
+{
+    $fmt = static function (float $v): string {
+        $s = rtrim(rtrim(number_format($v, 1, '.', ''), '0'), '.');
+        return I18n::locale() === 'bn' ? strtr($s, '0123456789', '০১২৩৪৫৬৭৮৯') : $s;
+    };
+    if ($n >= 1000000) return $fmt($n / 1000000) . 'M';
+    if ($n >= 1000) return $fmt($n / 1000) . 'K';
+    return num($n);
+}
+
+/** lang / dir attributes for article text: Arabic reads right to left. */
+function art_attrs(array $a): string
+{
+    $l = (string) ($a['lang'] ?? 'en');
+    return $l === 'ar' ? ' lang="ar" dir="rtl"' : ($l === 'bn' ? ' lang="bn"' : ' lang="en"');
+}
+
+/** The article's cover picture, or a calm generated cover (colour from the article id) when it has none. */
+function cover_html(array $a, string $cls = ''): string
+{
+    $c = (string) ($a['cover_path'] ?? '');
+    $cls = trim('cover ' . $cls);
+    if ($c !== '' && preg_match('#^articles/[A-Za-z0-9._-]+$#', $c) === 1) {
+        return '<span class="' . e($cls) . '"><img src="/uploads/' . e($c) . '" alt="" loading="lazy"></span>';
+    }
+    $h = ((int) ($a['id'] ?? 0) * 47) % 360;
+    return '<span class="' . e($cls) . ' cover-ph" style="--h:' . $h . '" aria-hidden="true">' . icon('quote') . '</span>';
+}

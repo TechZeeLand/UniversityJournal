@@ -45,7 +45,7 @@ final class AuthController
         Auth::login($u);
         Audit::log('login.ok', Identity::loginId($u), null, (int) $u['id']);
         if ((int) $u['must_change_password'] === 1) redirect('/account/password');
-        redirect($next !== '' ? $next : Auth::homeFor($u['role']));
+        redirect($next !== '' ? $next : ($u['role'] === 'reader' ? '/' : Auth::homeFor($u['role'])));
     }
 
     public static function logout(): void

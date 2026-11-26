@@ -9,6 +9,9 @@ $title = ($pageTitle ?? null) ? $pageTitle . ' · ' . $site : ($tagline !== '' ?
 $icon = Branding::url('icon');
 $iconType = $icon !== null ? Branding::mime('icon') : 'image/svg+xml';
 $og = Branding::url('og');
+$desc = trim((string) ($meta['description'] ?? '')) !== '' ? (string) $meta['description'] : $tagline;
+$ogImage = !empty($meta['image']) ? (string) $meta['image'] : $og;
+$ogType = (string) ($meta['type'] ?? 'website');
 $origin = rtrim((string) \App\Core\Env::get('APP_URL', ''), '/');
 $social = ['facebook' => 'Facebook', 'x' => 'X', 'youtube' => 'YouTube', 'instagram' => 'Instagram', 'linkedin' => 'LinkedIn', 'github' => 'GitHub', 'telegram' => 'Telegram'];
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
@@ -20,13 +23,15 @@ $otherLang = $loc === 'en' ? 'bn' : 'en';
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e($title) ?></title>
-  <meta name="description" content="<?= e($tagline) ?>">
+  <meta name="description" content="<?= e($desc) ?>">
+  <meta name="csrf-token" content="<?= e(Csrf::token()) ?>">
   <meta name="theme-color" content="<?= e(Theme::primary()) ?>">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="<?= e($ogType) ?>">
   <meta property="og:site_name" content="<?= e($site) ?>">
   <meta property="og:title" content="<?= e($title) ?>">
-  <meta property="og:description" content="<?= e($tagline) ?>">
-<?php if ($og !== null): ?>  <meta property="og:image" content="<?= e($origin . $og) ?>">
+  <meta property="og:description" content="<?= e($desc) ?>">
+  <meta property="og:url" content="<?= e(abs_url($path)) ?>">
+<?php if ($ogImage !== null): ?>  <meta property="og:image" content="<?= e(abs_url($ogImage)) ?>">
   <meta name="twitter:card" content="summary_large_image">
 <?php endif; ?>
   <link rel="icon" href="<?= e($icon ?? asset('logo.svg')) ?>" type="<?= e($iconType) ?>">
@@ -54,7 +59,7 @@ $otherLang = $loc === 'en' ? 'bn' : 'en';
         <a class="icon-btn" href="/lang/<?= $otherLang ?>" hreflang="<?= $otherLang ?>" aria-label="<?= e(t('ui.language')) ?>: <?= e(I18n::LOCALES[$otherLang]) ?>"><?= icon('languages') ?><span class="lang-label"><?= e(I18n::LOCALES[$otherLang]) ?></span></a>
         <button class="icon-btn theme-toggle" type="button" aria-label="<?= e(t('ui.theme')) ?>"><?= icon('moon', 'only-light') ?><?= icon('sun', 'only-dark') ?></button>
         <?php if ($cu): ?>
-          <a class="icon-btn" href="/profile" aria-label="<?= e(t('nav.profile')) ?>"><?= avatar($cu) ?></a>
+          <a class="icon-btn" href="<?= $cu['role'] === 'reader' ? '/account' : '/profile' ?>" aria-label="<?= e(t('nav.profile')) ?>"><?= avatar($cu) ?></a>
           <a class="btn btn-ghost btn-sm" href="<?= e(Auth::homeFor($cu['role'])) ?>"><?= icon('layout-dashboard') ?><span class="hide-sm"><?= e(t('home.' . $cu['role'])) ?></span></a>
           <form method="post" action="/logout" class="inline"><?= Csrf::field() ?><button class="icon-btn" type="submit" aria-label="<?= e(t('nav.logout')) ?>" title="<?= e(t('nav.logout')) ?>"><?= icon('log-out') ?></button></form>
         <?php else: ?>

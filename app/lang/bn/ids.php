@@ -58,7 +58,7 @@ return [
   'set.university_name' => 'বিশ্ববিদ্যালয়ের নাম',
   'set.university_name.hint' => 'ফুটার ও প্রকাশ্য পাতায় দেখানো হয়।',
   'set.source_repo_url' => 'সোর্স কোডের লিংক',
-  'set.source_repo_url.hint' => 'ফুটারে দেখানো হয়। প্রকাশ্য সাইটে AGPL অনুযায়ী সোর্স লিংক দিতে হয়।',
+  'set.source_repo_url.hint' => 'ফুটারে "সোর্স কোড" লিংক হিসেবে দেখানো হয়। GPL-এ আবশ্যক নয়, তবে উন্মুক্ত থাকার ভালো উপায়।',
   'set.default_lang' => 'ডিফল্ট ইন্টারফেস ভাষা',
   'set.default_lang.hint' => 'যেসব দর্শক ভাষা বেছে নেননি তাদের জন্য।',
   'set.default_theme' => 'ডিফল্ট থিম',

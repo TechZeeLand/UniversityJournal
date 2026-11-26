@@ -2,7 +2,39 @@
 
 Last updated: 2026-11-26 (Phase 1E-a written: data folder, branding uploads, public addresses, editable site; Phases 1B, 1B+ and 1E-a are NOT yet tested, the sandbox has no PHP)
 
-## Done: Phase 1E-a (2026-11-26) - written, UNTESTED (static lint only: brackets, imports, method names, language keys en/bn parity, SQL quotes)
+## Done: Phase 1C + 1D first slice (2026-11-27) - written, UNTESTED (no PHP in my sandbox; static lint only: brackets in all 110 PHP files, language keys en/bn parity, helper/method names, JS syntax)
+
+**Your 6 requests, in the order you gave them**
+1. **GPL**: `LICENSE` is now GPL-3.0 (full text); README, footer ("Source code (GPL-3.0)"), setting hints, Tech portal text and migration 003 comment updated. The source link in the footer is optional now. Note: unlike the AGPL, the GPL does not oblige you to publish a modified version that you only run as a website. Say so if you want the AGPL back.
+2. **Home page**: hero (with live numbers), feature cards, then **"The Latest" newspaper section** under the cards: dateline strip with a double rule, a lead story with big serif headline, two side stories, a three-column row with vertical rules, a "More stories" wire list in two columns, and a sidebar with "Most read this month", a write call-to-action and a reader sign-up box. Stories without a cover get a generated colour cover. Count (default 20) and on/off are Tech portal settings (Home tab).
+3. **Explore** (`/explore`): big search box; sort chips **Newest, Oldest, Top rated, Most liked, Most read, Most discussed**; filters by type, department, language, period (week/month/year) and a from/to date range; removable active-filter tags; paging. Filters apply as you change them.
+4. **Like, dislike, comment, share**: like/dislike without reloading (one reaction per person, press again to undo); comments with one level of replies, delete your own, moderators can hide/show/delete; share bar (native share sheet, copy link, Facebook, X, WhatsApp, Telegram, LinkedIn, email, print); reads counted once per visit; share clicks counted. All switchable in Tech portal > Engagement.
+5. **Reader accounts** (role `reader`): `/register` with **plain email** or **Google** (each switchable in Tech portal > Readers, with client ID and secret fields; the secret is write-only; the redirect URI to register with Google is shown on that tab). Readers can read, like, dislike and comment, and have a small `/account` page (name, photo, password). They sign in on the normal login page with their email. A Google sign-in never takes over a university account that has the same email. Moderators have Readers, Comments and Articles tabs.
+6. **Design**: new hero, cards that lift on hover, newspaper typography, explore page header, article page (reading-progress bar, drop cap, cover, author card), print styles, mobile layouts. Every page uses the existing colour/font settings.
+
+**Needed first, so also built (this was Phase 1C)**: articles table, 8 article types, writer pages (`/write`: Markdown editor with toolbar, live preview, inline picture upload, cover picture, drafts, unsaved-changes warning), submit for review, moderator review queue (publish with a review label, request changes, reject, archive, feature), author notes. Tech setting "articles must be approved by a moderator" (on by default).
+
+**Demo content**: `php bin/seed-demo.php` adds 24 sample published articles (uses your existing students/teachers as authors); `php bin/seed-demo.php --clear` removes them. Run it once to see the newspaper layout.
+
+**Test checklist**
+- [ ] Migration 007 applies on start (new tables, `users.google_sub`, `users.has_password`, new settings).
+- [ ] `php bin/seed-demo.php`, then open `/`: newspaper section shows; try `/explore` with every sort and filter.
+- [ ] Sign in as a student: `/write/new`, write, insert a picture, preview, save draft, submit. Profile must be complete to submit.
+- [ ] Moderator: Articles tab, open the article, publish with a label. It appears on `/` and `/explore`.
+- [ ] Open the article signed out: like gives the sign-in page; after sign-in you return to the article.
+- [ ] `/register` with email; log out; sign in with the email; like, dislike, comment, reply, delete own comment.
+- [ ] Tech portal > Readers: set Google client ID/secret, turn Google on, register the shown redirect URI in Google Cloud Console, try "Continue with Google".
+- [ ] Moderator > Comments: hide, show, delete. Moderator > Readers: suspend, reset password.
+- [ ] Bangla interface: digits, month names, article cards. An Arabic article reads right to left.
+
+**Known gaps / assumptions (tell me if you disagree)**
+- Reader emails are **not verified** yet (no email sending until the SMTP tab exists). Readers cannot reset a forgotten password themselves yet; a moderator can issue a temporary one. Both come with the SMTP phase.
+- "Most rated" = likes minus dislikes ("Top rated") plus a separate "Most liked".
+- Published articles cannot be edited by the author yet (ask a moderator to archive); versioning and peer-review rounds are later.
+- No tags, bookmarks, notifications, comment likes, or report button yet. No full-text search engine; search is title/summary/author name.
+- New icon needed in your icon service: `thumbs-down` (SVG in `new-icons-2/thumbs-down.svg`). Until it is added, the dislike button shows no icon.
+
+## Previous: Phase 1E-a (2026-11-26) - written, UNTESTED (static lint only: brackets, imports, method names, language keys en/bn parity, SQL quotes)
 **Your requests**
 1. **Logo and icon editable from the Tech portal**: Settings > Branding has upload cards for logo, dark-theme logo (optional), site icon (favicon) and share picture; plus names in English and Bangla, brand colours for light and dark, "show name next to logo". The header, favicon, theme colour and share tags use them.
 2. **Public URLs**: `/students/<university ID>` and `/teachers/<public number>` by default; switchable under Settings > Public addresses (students: university ID, number or random code; teachers: number, university ID or random code). Custom address per person on the person's page (tech admin only). Public profile page and `/authors` directory built so the addresses resolve. People can hide their page on their profile; pages show only for complete profiles. Teachers' number is a separate serial (1, 2, 3 ...), not the sign-in login number.
@@ -54,8 +86,8 @@ Last updated: 2026-11-26 (Phase 1E-a written: data folder, branding uploads, pub
 ## Suggested next phases
 1. **1E-a (done, see top)**. Remaining from it: Email (SMTP) tab with a test-email button.
 2. **1E-b Security**: 2FA (email and app), devices list, trusted devices.
-3. **1C Publishing**: article types, rich editor with autosave, review workflow, moderator tools.
-4. **1D Public site**: landing page polish, article pages, search, legal pages, share cards, RSS, PWA.
+3. **1C Publishing (first slice done, see top)**. Remaining: autosave, versions/editing after publish, peer-review rounds, tags, drafts shared with co-authors.
+4. **1D Public site (home, explore, article page done)**. Remaining: RSS, sitemap, PWA, per-author pages listing their articles, better search.
 I will ask you to confirm this order before starting.
 
 ## Done: Phase 1A (foundation)
@@ -94,7 +126,7 @@ The sandbox has no PHP, so this was checked only by a static linter (brackets, m
 6. Open `/tech/audit` and confirm entries.
 
 ## Licensing
-AGPL-3.0-or-later. `LICENSE` file is in the repo. Still to do: licence header in source files. Migration 003 adds the `source_repo_url` setting; the footer shows a source link when it is set.
+GPL-3.0-or-later (switched from AGPL-3.0 on 2026-11-26/27). `LICENSE` is the GPL-3.0 text. Still to do: licence header in source files. Migration 003 adds the `source_repo_url` setting; the footer shows a source link when it is set (optional under the GPL).
 
 ## Test results so far
 User built it in Portainer: site loads. Bug found and fixed: in nginx, `set` must come before `rewrite ... break` (otherwise the proxy variable is empty), so fonts/icons did not load. Browser console messages about an inline script from 'sandbox eval code' and 'file:///' come from a browser extension, not the site.
@@ -112,6 +144,6 @@ The sandbox had no PHP or Docker, so none of this has been run. First build may 
 - Phase 1C publishing (article types, editor, workflow, moderator portal), 1D public site and legal pages, 1E Tech portal.
 
 ## Open items for the user
-- Provide `source_repo_url` (needed by the AGPL for a public site).
+- `source_repo_url` is optional now (GPL); set it if you want a footer link to the code.
 - Real site name, logo, colours and university name (editable later in Tech portal).
 - The Fonts tab (font pickers fed by `/tzl-fonts/api/fonts.json`) and the required-profile-fields checkboxes are the next Tech portal tabs (see Suggested next phases).

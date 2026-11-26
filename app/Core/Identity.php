@@ -97,6 +97,6 @@ final class Identity
     /** People who could not sign in if the mode were university: they have no university ID yet. */
     public static function withoutUid(): int
     {
-        return (int) DB::val("SELECT COUNT(*) FROM users WHERE uid IS NULL");
+        return (int) DB::val("SELECT COUNT(*) FROM users WHERE uid IS NULL AND role <> 'reader'");
     }
 }

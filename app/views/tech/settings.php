@@ -41,6 +41,10 @@ use App\Core\{Csrf, View};
     <?php if ($group === 'profiles'): ?>
       <div class="alert alert-info" role="note"><?= icon('info') ?><span><?= e(t('profiles.intro')) ?></span></div>
     <?php endif; ?>
+    <?php if ($group === 'readers'): ?>
+      <div class="alert alert-info" role="note"><?= icon('info') ?><span><?= e(t('readers.intro')) ?><br>
+        <?= e(t('readers.redirect')) ?> <code><?= e(\App\Services\GoogleAuth::redirectUri()) ?></code></span></div>
+    <?php endif; ?>
     <?php if ($group === 'backups'): ?>
       <p><a class="btn btn-ghost btn-sm" href="/tech/backups"><?= icon('hard-drive') ?> <?= e(t('backups.title')) ?></a></p>
     <?php endif; ?>
@@ -74,6 +78,8 @@ use App\Core\{Csrf, View};
             <?php elseif ($type === 'color'): ?>
               <div class="color-row"><input id="f_<?= e($k) ?>" name="<?= e($k) ?>" type="color" value="<?= e($val) ?>"><code><?= e($val) ?></code>
                 <span class="muted small"><?= e(t('set.default')) ?>: <code><?= e($f['default']) ?></code></span></div>
+            <?php elseif ($type === 'secret'): ?>
+              <input id="f_<?= e($k) ?>" name="<?= e($k) ?>" type="password" maxlength="<?= (int) $f['max_len'] ?>" value="" autocomplete="new-password" placeholder="<?= e($val !== '' ? t('set.secret_set') : t('set.secret_unset')) ?>">
             <?php elseif ($type === 'font'): ?>
               <input id="f_<?= e($k) ?>" name="<?= e($k) ?>" type="text" maxlength="60" list="font_names" value="<?= e($val) ?>" autocomplete="off" spellcheck="false">
             <?php else:

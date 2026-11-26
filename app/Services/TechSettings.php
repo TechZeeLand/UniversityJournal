@@ -9,7 +9,7 @@ use App\Core\{Audit, Fonts, Settings, Theme};
  * whole tab is saved or rejected together. New tabs are added here.
  * Labels and hints come from the language files: set.<key> and (optional) set.<key>.hint, tab titles from settings.tab.<group>.
  * A field may carry 'heading' => 'set.h.xxx' to print a small heading above it.
- * Field types: text, textarea, int, select, bool, url, link (site path or web address), email, color, font, weights, icon, checks.
+ * Field types: text, textarea, int, select, bool, url, link (site path or web address), email, color, font, weights, icon, checks, secret (write-only).
  * The sign-in ID system (`id_mode`) and the logo/icon uploads have their own guarded forms and are not listed here.
  */
 final class TechSettings
@@ -58,6 +58,9 @@ final class TechSettings
                 ['key' => 'home_cta1_url', 'type' => 'link', 'max_len' => 255, 'required' => true, 'default' => '/explore', 'grp' => 'home'],
                 ['key' => 'home_cta2_url', 'type' => 'link', 'max_len' => 255, 'required' => true, 'default' => '/login', 'grp' => 'home'],
                 ['key' => 'home_show_features', 'type' => 'bool', 'default' => '1', 'grp' => 'home'],
+                ['key' => 'home_show_latest', 'type' => 'bool', 'default' => '1', 'grp' => 'home', 'heading' => 'set.h.latest'],
+                ['key' => 'home_latest_count', 'type' => 'int', 'min' => 4, 'max' => 40, 'default' => '20', 'grp' => 'home'],
+                ['key' => 'explore_per_page', 'type' => 'int', 'min' => 6, 'max' => 48, 'default' => '12', 'grp' => 'home'],
             ], $homeIcons)],
             'contact' => ['icon' => 'mail', 'fields' => array_merge([
                 ['key' => 'contact_email', 'type' => 'email', 'default' => '', 'grp' => 'contact'],
@@ -73,6 +76,21 @@ final class TechSettings
             'profiles' => ['icon' => 'id-card', 'fields' => [
                 ['key' => 'profile_required_student', 'type' => 'checks', 'options' => self::PROFILE_FIELDS_STUDENT, 'default' => '["full_name","department_id","academic_session","bio","photo_path"]', 'grp' => 'profiles'],
                 ['key' => 'profile_required_teacher', 'type' => 'checks', 'options' => self::PROFILE_FIELDS_TEACHER, 'default' => '["full_name","department_id","designation","bio","photo_path"]', 'grp' => 'profiles'],
+            ]],
+            'readers' => ['icon' => 'user-plus', 'fields' => [
+                ['key' => 'reader_signup', 'type' => 'bool', 'default' => '1', 'grp' => 'readers'],
+                ['key' => 'reader_email_signup', 'type' => 'bool', 'default' => '1', 'grp' => 'readers'],
+                ['key' => 'reader_google', 'type' => 'bool', 'default' => '0', 'grp' => 'readers', 'heading' => 'set.h.google'],
+                ['key' => 'google_client_id', 'type' => 'text', 'max_len' => 200, 'default' => '', 'grp' => 'readers'],
+                ['key' => 'google_client_secret', 'type' => 'secret', 'max_len' => 200, 'default' => '', 'grp' => 'readers'],
+            ]],
+            'engagement' => ['icon' => 'message-square', 'fields' => [
+                ['key' => 'engage_reactions', 'type' => 'bool', 'default' => '1', 'grp' => 'engagement'],
+                ['key' => 'engage_comments', 'type' => 'bool', 'default' => '1', 'grp' => 'engagement'],
+                ['key' => 'engage_share', 'type' => 'bool', 'default' => '1', 'grp' => 'engagement'],
+                ['key' => 'comment_max_len', 'type' => 'int', 'min' => 100, 'max' => 10000, 'default' => '1500', 'grp' => 'engagement'],
+                ['key' => 'comment_cooldown_sec', 'type' => 'int', 'min' => 0, 'max' => 600, 'default' => '20', 'grp' => 'engagement'],
+                ['key' => 'publish_needs_review', 'type' => 'bool', 'default' => '1', 'grp' => 'engagement', 'heading' => 'set.h.publishing'],
             ]],
             'accounts' => ['icon' => 'users', 'fields' => [
                 ['key' => 'password_min_length', 'type' => 'int', 'min' => 6, 'max' => 64, 'default' => '8', 'grp' => 'security'],
@@ -127,6 +145,11 @@ final class TechSettings
                 continue;
             }
             $v = isset($post[$k]) && is_string($post[$k]) ? trim($post[$k]) : '';
+            if ($f['type'] === 'secret') {      // left empty = keep the stored value; never shown again
+                $vals[$k] = $v !== '' ? $v : (string) Settings::get($k, '');
+                if (mb_strlen($vals[$k]) > $f['max_len']) $errors[$k] = t('set.err_long', ['max' => $f['max_len']]);
+                continue;
+            }
             if ($f['type'] === 'textarea') $v = trim(str_replace("\r", '', (string) ($post[$k] ?? '')));
             $vals[$k] = $v;
             switch ($f['type']) {
@@ -187,7 +210,7 @@ final class TechSettings
             $old = (string) Settings::get($k, (string) $f['default']);
             if ($vals[$k] !== $old) {
                 Settings::set($k, $vals[$k], $f['grp']);
-                $changes[] = $k . ': ' . mb_substr($old, 0, 60) . ' -> ' . mb_substr($vals[$k], 0, 60);
+                $changes[] = $f['type'] === 'secret' ? $k . ': (changed)' : $k . ': ' . mb_substr($old, 0, 60) . ' -> ' . mb_substr($vals[$k], 0, 60);
             }
         }
         if ($changes) Audit::log('settings.updated', $group, implode('; ', $changes));

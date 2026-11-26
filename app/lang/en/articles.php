@@ -1,0 +1,106 @@
+<?php
+return [
+  // time and dates
+  'time.now' => 'just now', 'time.min' => '{n} min ago', 'time.hour' => '{n} h ago', 'time.day' => '{n} d ago',
+  'month.1' => 'Jan', 'month.2' => 'Feb', 'month.3' => 'Mar', 'month.4' => 'Apr', 'month.5' => 'May', 'month.6' => 'Jun',
+  'month.7' => 'Jul', 'month.8' => 'Aug', 'month.9' => 'Sep', 'month.10' => 'Oct', 'month.11' => 'Nov', 'month.12' => 'Dec',
+  'weekday.0' => 'Sunday', 'weekday.1' => 'Monday', 'weekday.2' => 'Tuesday', 'weekday.3' => 'Wednesday', 'weekday.4' => 'Thursday', 'weekday.5' => 'Friday', 'weekday.6' => 'Saturday',
+  'role.reader' => 'Reader', 'home.reader' => 'My account',
+
+  // home
+  'home.featured' => 'Featured', 'home.latest' => 'The Latest', 'home.latest_sub' => 'Fresh writing from our students and teachers.',
+  'home.edition' => 'Today’s edition', 'home.more' => 'More stories', 'home.most_read' => 'Most read this month', 'home.all' => 'See all articles',
+  'home.stat_articles' => 'Articles', 'home.stat_authors' => 'Authors', 'home.stat_reads' => 'Reads',
+  'home.empty_t' => 'The first stories are on their way', 'home.empty_d' => 'Articles will appear here as soon as they are published.',
+  'home.write_t' => 'Have something to say?', 'home.write_d' => 'Students and teachers can write, submit and publish their work here.',
+  'home.join_t' => 'Join the conversation', 'home.join_d' => 'Create a free reader account to like, dislike and comment on articles.',
+
+  // explore
+  'explore.title' => 'Explore articles', 'explore.sub' => 'Search, filter and sort everything published here.',
+  'explore.search_ph' => 'Search titles, summaries and authors…', 'explore.sort' => 'Sort by', 'explore.filters' => 'More filters',
+  'explore.sort_newest' => 'Newest first', 'explore.sort_oldest' => 'Oldest first', 'explore.sort_top_rated' => 'Top rated',
+  'explore.sort_most_liked' => 'Most liked', 'explore.sort_most_read' => 'Most read', 'explore.sort_most_discussed' => 'Most discussed',
+  'explore.type' => 'Type', 'explore.lang' => 'Language', 'explore.lang_en' => 'English', 'explore.lang_bn' => 'Bangla', 'explore.lang_ar' => 'Arabic',
+  'explore.period' => 'Published', 'explore.any_time' => 'Any time', 'explore.any' => 'Any',
+  'explore.period_7d' => 'Past week', 'explore.period_30d' => 'Past month', 'explore.period_1y' => 'Past year',
+  'explore.from' => 'From', 'explore.to' => 'To', 'explore.q' => 'Search', 'explore.apply' => 'Apply filters', 'explore.reset' => 'Clear filters',
+  'explore.remove' => 'Remove this filter', 'explore.count' => '{n} articles found', 'explore.by_author' => 'One author',
+  'explore.none_t' => 'No articles match', 'explore.none_d' => 'Try a different word or clear some filters.',
+
+  // article page
+  'art.article' => 'Article', 'art.min_read' => '{n} min read', 'art.reads' => 'Reads', 'art.likes' => 'Likes', 'art.comments' => 'Comments',
+  'art.written_by' => 'Written by', 'art.more_by' => 'More from this author', 'art.related' => 'Keep reading',
+  'art.preview' => 'This article is not public yet. Status: {status}.',
+  'art.status_draft' => 'Draft', 'art.status_submitted' => 'In review', 'art.status_changes_requested' => 'Changes requested',
+  'art.status_published' => 'Published', 'art.status_rejected' => 'Rejected', 'art.status_archived' => 'Archived',
+  'art.label_none' => 'No label', 'art.label_editor_reviewed' => 'Editor reviewed', 'art.label_peer_reviewed' => 'Peer reviewed',
+  'art.label_hint' => 'A moderator has reviewed this article.',
+
+  // engagement
+  'eng.like' => 'Like', 'eng.dislike' => 'Dislike', 'eng.comments' => 'Comments', 'eng.share' => 'Share', 'eng.share_native' => 'Share…',
+  'eng.copy_link' => 'Copy link', 'eng.copied' => 'Copied!', 'eng.print' => 'Print', 'eng.share_email' => 'Email',
+  'eng.write' => 'Write a comment…', 'eng.post' => 'Post comment', 'eng.posted' => 'Your comment was posted.', 'eng.chars_left' => 'characters left',
+  'eng.reply' => 'Reply', 'eng.replying' => 'You are replying to a comment.', 'eng.cancel' => 'Cancel', 'eng.delete' => 'Delete',
+  'eng.hide' => 'Hide', 'eng.show' => 'Show', 'eng.hidden' => 'Hidden', 'eng.anon' => 'Member',
+  'eng.confirm_delete' => 'Delete this comment? Replies to it will be deleted too.',
+  'eng.signin_to_comment' => 'Sign in to like, dislike or comment.', 'eng.no_comments' => 'No comments yet. Be the first to share a thought.',
+  'eng.err_empty' => 'Please write something first.', 'eng.err_long' => 'That comment is too long.',
+  'eng.err_fast' => 'Please wait {n} seconds before commenting again.', 'eng.err_parent' => 'The comment you replied to is no longer there.',
+
+  // readers
+  'reader.create' => 'Create a reader account', 'reader.create_sub' => 'For people outside the university. Read, like, dislike and comment for free.',
+  'reader.name' => 'Your name', 'reader.email' => 'Email', 'reader.google' => 'Continue with Google', 'reader.or' => 'or',
+  'reader.terms_note' => 'By creating an account you agree to the', 'reader.have_account' => 'Already have an account?', 'reader.no_account' => 'New here?',
+  'reader.err_name' => 'Please enter your name (at least 2 letters).', 'reader.err_email' => 'Please enter a valid email address.',
+  'reader.err_taken' => 'This email is already registered. Try signing in.', 'reader.err_throttle' => 'Too many sign-ups from this network. Please try again later.',
+  'reader.err_google' => 'Google sign-in did not work. Please try again or use your email.',
+  'reader.err_university_email' => 'This email belongs to a university account. Please sign in with your university ID.',
+  'reader.welcome' => 'Welcome! You can now like, dislike and comment on articles.', 'reader.my_account' => 'My account', 'reader.saved' => 'Saved.',
+  'reader.photo' => 'Photo', 'reader.remove_photo' => 'Remove my photo', 'reader.set_password' => 'Set a password',
+  'reader.n_comments' => '{n} comments', 'reader.n_likes' => '{n} likes', 'reader.signin_with' => 'Signs in with', 'reader.method_email' => 'Email and password',
+  'readers.intro' => 'Reader accounts let people outside the university read, like, dislike and comment. To use Google sign-in, create an OAuth client (type: Web application) in Google Cloud Console and paste its ID and secret below.',
+  'readers.redirect' => 'Authorised redirect URI to register with Google:',
+
+  // writing
+  'write.my' => 'My articles', 'write.new' => 'New article', 'write.edit' => 'Edit article', 'write.title' => 'Title', 'write.summary' => 'Short summary',
+  'write.summary_hint' => 'One or two sentences shown on cards and in search. Optional.', 'write.body' => 'Text', 'write.cover' => 'Cover picture',
+  'write.cover_hint' => 'Cropped to 16:9. JPEG, PNG, WebP or GIF.', 'write.remove_cover' => 'Remove the cover picture', 'write.preview' => 'Preview',
+  'write.md_hint' => 'Markdown: ## heading, **bold**, *italic*, > quote, - list.', 'write.tools' => 'Formatting',
+  'write.t_heading' => 'Heading', 'write.t_bold' => 'Bold', 'write.t_italic' => 'Italic', 'write.t_quote' => 'Quote', 'write.t_list' => 'List',
+  'write.t_link' => 'Link', 'write.t_code' => 'Code', 'write.t_image' => 'Insert picture',
+  'write.save_draft' => 'Save draft', 'write.submit' => 'Submit for review', 'write.publish' => 'Publish',
+  'write.saved' => 'Draft saved.', 'write.submitted' => 'Submitted. A moderator will review it soon.', 'write.published' => 'Your article is published.',
+  'write.withdrawn' => 'Withdrawn. It is a draft again.', 'write.deleted' => 'Article deleted.', 'write.withdraw' => 'Withdraw',
+  'write.locked' => 'This article can no longer be edited here.', 'write.confirm_delete' => 'Delete this article for good?',
+  'write.err_title' => 'Please give your article a title.', 'write.err_body' => 'The text needs at least 100 characters before it can be submitted.',
+  'write.err_type' => 'Please choose what type of article this is.', 'write.err_profile' => 'Complete your profile before submitting.',
+  'write.profile_incomplete' => 'You can save drafts now, but your profile must be complete before you submit.',
+  'write.empty_t' => 'You have not written anything yet', 'write.empty_d' => 'Start a draft; you can save it and come back any time.',
+  'write.th_title' => 'Title', 'write.th_status' => 'Status', 'write.th_stats' => 'Reads · likes · comments', 'write.th_updated' => 'Updated',
+  'write.reviewer_note' => 'Note from the reviewer', 'dash.write_d' => 'Write, save drafts and submit your work for review.', 'dash.complete_profile' => 'Complete your profile',
+
+  // review
+  'review.title' => 'Articles', 'review.comments' => 'Comments', 'review.readers' => 'Readers', 'review.none' => 'Nothing here.',
+  'review.th_author' => 'Author', 'review.th_date' => 'Date', 'review.open' => 'Open in review', 'review.decision' => 'Decision',
+  'review.label' => 'Review label', 'review.label_hint' => 'Shown as a badge on the published article.',
+  'review.note' => 'Note to the author', 'review.note_hint' => 'Required when asking for changes or rejecting.',
+  'review.publish' => 'Publish', 'review.changes' => 'Request changes', 'review.reject' => 'Reject', 'review.archive' => 'Archive', 'review.view_live' => 'View live',
+  'review.confirm_reject' => 'Reject this article?', 'review.confirm_archive' => 'Take this article off the site?',
+  'review.feature' => 'Feature on home page', 'review.unfeature' => 'Remove from featured', 'review.feature_d' => 'Featured articles get a small badge on cards.',
+  'review.done_publish' => 'Published.', 'review.done_changes' => 'Sent back to the author.', 'review.done_reject' => 'Rejected.', 'review.done_archive' => 'Archived.',
+  'review.err_note' => 'Please write a short note to the author.', 'review.err_state' => 'That article is not in a state where this can be done.',
+  'review.no_comments' => 'No comments yet.', 'review.readers_intro' => 'People outside the university who signed up to read and comment.',
+
+  // settings tabs and fields
+  'settings.tab.readers' => 'Readers', 'settings.tab.engagement' => 'Engagement',
+  'set.h.latest' => 'Latest articles', 'set.h.google' => 'Google sign-in', 'set.h.publishing' => 'Publishing',
+  'set.home_show_latest' => 'Show the latest articles on the home page', 'set.home_latest_count' => 'How many latest articles (home page)', 'set.explore_per_page' => 'Articles per page (Explore)',
+  'set.reader_signup' => 'Allow people outside the university to create reader accounts', 'set.reader_email_signup' => 'Allow sign-up with email and password',
+  'set.reader_google' => 'Allow sign-in with Google', 'set.google_client_id' => 'Google client ID', 'set.google_client_secret' => 'Google client secret',
+  'set.google_client_secret.hint' => 'Stored on the server and never shown again. Leave empty to keep the current one.',
+  'set.secret_set' => '•••••••• (saved, type to replace)', 'set.secret_unset' => 'Not set',
+  'set.engage_reactions' => 'Allow likes and dislikes', 'set.engage_comments' => 'Allow comments', 'set.engage_share' => 'Show share buttons',
+  'set.comment_max_len' => 'Longest comment (characters)', 'set.comment_cooldown_sec' => 'Seconds between comments from one person',
+  'set.publish_needs_review' => 'Articles must be approved by a moderator before they go live',
+  'set.publish_needs_review.hint' => 'Turn off to let students and teachers publish immediately. Moderators can still archive anything.',
+];

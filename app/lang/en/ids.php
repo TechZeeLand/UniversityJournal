@@ -58,7 +58,7 @@ return [
   'set.university_name' => 'University name',
   'set.university_name.hint' => 'Shown in the footer and on public pages.',
   'set.source_repo_url' => 'Source code link',
-  'set.source_repo_url.hint' => 'Shown in the footer. The AGPL requires a source link on public sites.',
+  'set.source_repo_url.hint' => 'Shown in the footer as a "Source code" link. Optional under the GPL, but a nice way to stay open.',
   'set.default_lang' => 'Default interface language',
   'set.default_lang.hint' => 'Used for visitors who have not chosen a language.',
   'set.default_theme' => 'Default theme',

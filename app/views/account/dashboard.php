@@ -44,7 +44,8 @@
       <article class="card">
         <span class="card-icon"><?= icon('square-pen') ?></span>
         <h3><?= e(t('dash.card_write')) ?></h3>
-        <p class="muted"><?= e(t('dash.write_soon')) ?></p>
+        <p class="muted"><?= e(t('dash.write_d')) ?></p>
+        <p><a class="btn btn-primary btn-sm" href="/write"><?= e(t('write.my')) ?></a> <a class="btn btn-ghost btn-sm" href="/write/new"><?= e(t('write.new')) ?></a></p>
       </article>
     </div>
   </div>

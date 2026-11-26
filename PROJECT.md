@@ -1,6 +1,6 @@
 # University Journal: project summary
 
-An open-source (AGPL-3.0-or-later) article publishing platform for a university, started as a student initiative (no official university involvement yet). Students and professors publish articles. Moderators review and approve. A separate Tech portal controls every technical setting.
+An open-source (GPL-3.0-or-later) article publishing platform for a university, started as a student initiative (no official university involvement yet). Students and professors publish articles. Moderators review and approve. A separate Tech portal controls every technical setting.
 
 ## Stack and hosting
 - Plain PHP 8.3 (no framework, small custom core in `app/Core`), MariaDB, nginx. One Docker image runs all three under supervisord.
@@ -10,7 +10,7 @@ An open-source (AGPL-3.0-or-later) article publishing platform for a university,
 - Icons not yet in the set are listed to the user, who adds them to the icon service. No local icon files are kept.
 
 ## Decisions made (from the start)
-1. Open source under AGPL-3.0-or-later (changed from closed-source on 2026-11-24). GitHub repo, deployed via Portainer repository option. AGPL section 13: footer links to the source via setting `source_repo_url`. Never commit secrets; `.env` is git-ignored.
+1. Open source under GPL-3.0-or-later (closed-source until 2026-11-24, AGPL-3.0 until 2026-11-26, then switched to the GPL at your request). GitHub repo, deployed via Portainer repository option. Optional footer link to the source via setting `source_repo_url`. Never commit secrets; `.env` is git-ignored.
 2. Languages: html, css, js, php, sql, MariaDB. MariaDB and nginx are baked into the image.
 3. Accounts are created manually by an admin. Username = university ID. Users edit their own profile afterwards. Authors must complete required profile fields before they can publish.
 4. Two admin areas, one login page, redirect by role: Moderator portal (review, approve, manage content and users) and Tech portal (all technical settings, pages, university details, so code rarely needs touching).
@@ -50,3 +50,12 @@ An open-source (AGPL-3.0-or-later) article publishing platform for a university,
 28. **Branding uploads** are re-encoded with GD; SVGs are sanitised (scripts, event handlers, outside references removed) and `/uploads/` is served with a sandboxing CSP.
 29. **Backups**: automatic gzip'd SQL dumps into `data/backups/` (supervisor program, on/off, interval and count in Tech portal), plus a Backups page (create, download, delete, restore command).
 30. **Design consistency**: new screens reuse the existing components (`.card`, `.form`, `.field`, `.portal-nav`, `.tbl`, `.badge`, `.alert`); colours come only from CSS variables so the brand colour setting reaches every screen in both themes.
+
+## Decisions added 2026-11-27 (Phase 1C/1D first slice)
+- **Licence is the GPL** (see decision 1). Consequence accepted: running a modified copy only as a website does not require publishing it.
+- **Home page**: latest articles (about 20, Tech setting) sit **below the feature cards**, in a newspaper layout (lead story, side stories, three columns, "more stories" list, most-read sidebar).
+- **Explore** has sorts (newest, oldest, top rated, most liked, most read, most discussed) and filters (type, department, language, period, date range, search). "Top rated" = likes minus dislikes.
+- **Engagement**: like, dislike (one reaction per person), comments with one reply level, share buttons. Moderators can hide/delete comments. Everything switchable in the Tech portal.
+- **Reader accounts** (role `reader`) for people outside the university: read, like, dislike, comment only. Sign-up by **plain email** or **Google OAuth**, both configurable (on/off, Google client ID/secret) from the Tech portal. Readers sign in with their email on the normal login page. They have no profile page, cannot write.
+- **Publishing workflow**: draft, submitted, changes requested, published, rejected, archived. Tech setting decides whether moderator approval is required (default yes). Moderators can attach a review label (editor reviewed, peer reviewed) and feature an article.
+- **Design goal**: every page attractive, the home page especially.

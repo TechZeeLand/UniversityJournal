@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-use App\Controllers\{AccountController, AuthController, ModeratorController, PublicController, SiteAdminController, TechController};
+use App\Controllers\{AccountController, ArticleController, AuthController, ModeratorController, ModerationController, PublicController, ReaderController, SiteAdminController, TechController, WriterController};
 use App\Core\{DB, I18n, Theme, View};
 
 /** @var App\Core\Router $router */
 
-$router->get('/', fn() => View::render('pages/home', ['title' => null]));
+$router->get('/', [ArticleController::class, 'home']);
 
 $router->get('/theme.css', function () {
     $css = Theme::css();
@@ -87,13 +87,51 @@ $router->post('/tech/backups', [SiteAdminController::class, 'backupCreate']);
 $router->get('/tech/backups/{name}', [SiteAdminController::class, 'backupDownload']);
 $router->post('/tech/backups/{name}/delete', [SiteAdminController::class, 'backupDelete']);
 
+// ---- readers (people outside the university) ----
+$router->get('/register', [ReaderController::class, 'registerForm']);
+$router->post('/register', [ReaderController::class, 'register']);
+$router->get('/auth/google', [ReaderController::class, 'googleStart']);
+$router->get('/auth/google/callback', [ReaderController::class, 'googleCallback']);
+$router->get('/account', [ReaderController::class, 'account']);
+$router->post('/account', [ReaderController::class, 'accountSave']);
+
+// ---- writing (students and teachers; specific paths before {id}) ----
+$router->get('/write', [WriterController::class, 'index']);
+$router->get('/write/new', [WriterController::class, 'newForm']);
+$router->post('/write/preview', [WriterController::class, 'preview']);
+$router->post('/write/image', [WriterController::class, 'image']);
+$router->post('/write', fn() => WriterController::save());
+$router->get('/write/{id}', [WriterController::class, 'editForm']);
+$router->post('/write/{id}', fn(string $id) => WriterController::save($id));
+$router->post('/write/{id}/withdraw', [WriterController::class, 'withdraw']);
+$router->post('/write/{id}/delete', [WriterController::class, 'delete']);
+
+// ---- reading, explore, reacting ----
+$router->get('/explore', [ArticleController::class, 'explore']);
+$router->get('/article/{id}', fn(string $id) => ArticleController::show($id));
+$router->get('/article/{id}/{slug}', fn(string $id, string $slug) => ArticleController::show($id, $slug));
+$router->post('/article/{id}/react', [ArticleController::class, 'react']);
+$router->post('/article/{id}/comment', [ArticleController::class, 'commentAdd']);
+$router->post('/article/{id}/share', [ArticleController::class, 'shared']);
+$router->post('/comment/{id}/delete', fn(string $id) => ArticleController::commentAction($id, 'delete'));
+$router->post('/comment/{id}/hide', fn(string $id) => ArticleController::commentAction($id, 'hide'));
+$router->post('/comment/{id}/show', fn(string $id) => ArticleController::commentAction($id, 'show'));
+
+// ---- moderation: review queue, comments, readers ----
+$router->get('/moderator/articles', [ModerationController::class, 'articles']);
+$router->get('/moderator/articles/{id}', [ModerationController::class, 'articleShow']);
+$router->post('/moderator/articles/{id}/review', [ModerationController::class, 'articleReview']);
+$router->post('/moderator/articles/{id}/feature', [ModerationController::class, 'articleFeature']);
+$router->get('/moderator/comments', [ModerationController::class, 'comments']);
+$router->get('/moderator/readers', [ModerationController::class, 'readers']);
+
 // ---- public site ----
 $router->get('/authors', [PublicController::class, 'authors']);
 $router->get('/students/{key}', fn(string $key) => PublicController::profile('students', $key));
 $router->get('/teachers/{key}', fn(string $key) => PublicController::profile('teachers', $key));
 
 // Pages planned for later phases show a friendly placeholder instead of a 404.
-foreach (['explore', 'departments', 'collections', 'advertise', 'community'] as $slug) {
+foreach (['departments', 'collections', 'advertise', 'community'] as $slug) {
     $router->get('/' . $slug, fn() => View::render('pages/soon', ['title' => t('nav.' . $slug)]));
 }
 

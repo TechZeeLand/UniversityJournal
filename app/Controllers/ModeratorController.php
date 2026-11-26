@@ -139,6 +139,7 @@ final class ModeratorController
     {
         $actor = self::actor();
         $row = self::target($actor, $id);
+        if ($row['role'] === 'reader') redirect('/moderator/readers');
         self::showUser($actor, $row, null, null);
     }
 
@@ -177,7 +178,7 @@ final class ModeratorController
         DB::exec('UPDATE users SET status = ? WHERE id = ?', [$new, (int) $row['id']]);
         Audit::log($new === 'suspended' ? 'user.suspended' : 'user.activated', Identity::tag($row));
         Flash::add('ok', t($new === 'suspended' ? 'users.suspended_ok' : 'users.activated_ok'));
-        redirect('/moderator/users/' . (int) $row['id']);
+        redirect($row['role'] === 'reader' ? '/moderator/readers' : '/moderator/users/' . (int) $row['id']);
     }
 
     public static function userPassword(string $id): void
@@ -193,8 +194,8 @@ final class ModeratorController
             [(int) $actor['id'], (int) $row['id']]
         );
         Audit::log('password.reset', Identity::tag($row));
-        Flash::putSecret(['uid' => Identity::loginId($row), 'name' => display_name($row), 'password' => $pw]);
-        redirect('/moderator/users/' . (int) $row['id']);
+        Flash::putSecret(['uid' => $row['role'] === 'reader' ? (string) $row['email'] : Identity::loginId($row), 'name' => display_name($row), 'password' => $pw]);
+        redirect($row['role'] === 'reader' ? '/moderator/readers' : '/moderator/users/' . (int) $row['id']);
     }
 
     private static function showUser(array $actor, array $row, ?array $old, ?string $error): void

@@ -11,10 +11,12 @@
       <?php endif; ?>
       <form method="post" action="/account/password" class="form">
         <?= \App\Core\Csrf::field() ?>
+        <?php if ($hasPw ?? true): ?>
         <div class="field">
           <label for="current"><?= e(t('pw.current')) ?></label>
           <input id="current" name="current" type="password" autocomplete="current-password" required autofocus>
         </div>
+        <?php endif; ?>
         <div class="field">
           <label for="new"><?= e(t('pw.new')) ?></label>
           <div class="pw-wrap">

@@ -35,11 +35,12 @@ final class AccountController
 
         $hash = DB::val('SELECT password_hash FROM users WHERE id = ?', [(int) $u['id']]);
         $err = null;
-        if (!is_string($hash) || $cur === '' || !password_verify($cur, $hash)) {
+        $hasPw = (int) ($u['has_password'] ?? 1) === 1;
+        if ($hasPw && (!is_string($hash) || $cur === '' || !password_verify($cur, $hash))) {
             $err = t('pw.err_current');
         } elseif ($new !== $conf) {
             $err = t('pw.err_mismatch');
-        } elseif ($new === $cur) {
+        } elseif ($hasPw && $new === $cur) {
             $err = t('pw.err_same_old');
         } elseif (($k = Password::validate($new, \App\Core\Identity::loginId($u))) !== null) {
             $err = t('pw.' . $k, ['n' => Password::minLength()]);
@@ -52,6 +53,7 @@ final class AccountController
 
         // Every other session of this user is signed out; this one continues with the new epoch.
         $_SESSION['epoch'] = Auth::setPassword((int) $u['id'], $new, false);
+        DB::exec('UPDATE users SET has_password = 1 WHERE id = ?', [(int) $u['id']]);
         session_regenerate_id(true);
         Audit::log('password.changed', \App\Core\Identity::loginId($u), null, (int) $u['id']);
         Flash::add('ok', t('pw.changed'));
@@ -63,6 +65,7 @@ final class AccountController
         View::render('account/password', [
             'title' => t('pw.change_title'),
             'forced' => (int) $u['must_change_password'] === 1,
+            'hasPw' => (int) ($u['has_password'] ?? 1) === 1,
             'error' => $error,
             'min' => Password::minLength(),
         ]);
@@ -73,6 +76,7 @@ final class AccountController
     public static function profileForm(): void
     {
         $u = Auth::need();
+        if ($u['role'] === 'reader') redirect('/account');
         $p = DB::one('SELECT * FROM user_profiles WHERE user_id = ?', [(int) $u['id']]) ?: [];
         $old = [
             'full_name' => (string) ($p['full_name'] ?? ''),
@@ -92,6 +96,7 @@ final class AccountController
     public static function profileSave(): void
     {
         $u = Auth::need();
+        if ($u['role'] === 'reader') redirect('/account');
         $id = (int) $u['id'];
         $role = $u['role'];
         $p = DB::one('SELECT * FROM user_profiles WHERE user_id = ?', [$id]) ?: [];

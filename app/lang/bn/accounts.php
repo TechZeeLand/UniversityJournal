@@ -200,7 +200,7 @@ return [
   'tech.open' => 'খুলুন',
   'tech.system' => 'সিস্টেম',
   'tech.source' => 'সোর্স কোডের লিংক',
-  'tech.source_unset' => 'দেওয়া নেই (AGPL অনুযায়ী প্রকাশ্য সাইটে আবশ্যক)',
+  'tech.source_unset' => 'দেওয়া নেই (ঐচ্ছিক)',
   'audit.title' => 'অডিট লগ',
   'audit.search' => 'কাজ, আইডি বা আইপি খুঁজুন',
   'audit.th_time' => 'সময়',

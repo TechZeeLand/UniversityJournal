@@ -33,7 +33,7 @@ final class Auth
         }
 
         $row = DB::one(
-            'SELECT u.id, u.uid, u.serial_no, u.public_id, u.public_no, u.public_slug, u.role, u.status, u.must_change_password, u.email, u.auth_epoch,
+            'SELECT u.id, u.uid, u.serial_no, u.public_id, u.public_no, u.public_slug, u.role, u.status, u.must_change_password, u.email, u.auth_epoch, u.has_password, u.google_sub,
                     p.full_name, p.full_name_bn, p.photo_path, p.profile_complete, p.is_public
                FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id WHERE u.id = ?',
             [$id]
@@ -58,6 +58,7 @@ final class Auth
         return match ($role) {
             'tech_admin' => '/tech',
             'moderator' => '/moderator',
+            'reader' => '/account',
             default => '/dashboard',
         };
     }
@@ -97,16 +98,18 @@ final class Auth
     {
         // $uid is whatever was typed: the university ID or the login number, depending on Identity::mode().
         $raw = mb_strtolower(mb_substr(trim($uid), 0, 100));
-        $key = Identity::normalize($raw);
+        // Readers sign in with their email address; everyone else with the university ID or login number.
+        $isEmail = str_contains($raw, '@');
+        $key = $isEmail ? (mb_strlen($raw) <= 190 ? $raw : null) : Identity::normalize($raw);
         $ident = $key ?? $raw;
 
         $wait = self::lockWait($ident, $ip);
         if ($wait > 0) return ['ok' => false, 'error' => 'locked', 'wait' => $wait];
 
-        $u = $key === null ? null : DB::one(
-            'SELECT id, uid, serial_no, password_hash, role, status, must_change_password, auth_epoch FROM users WHERE ' . Identity::column() . ' = ?',
-            [$key]
-        );
+        $cols = 'id, uid, serial_no, password_hash, role, status, must_change_password, auth_epoch';
+        $u = $key === null ? null : ($isEmail
+            ? DB::one("SELECT $cols FROM users WHERE role = 'reader' AND email = ?", [$key])
+            : DB::one("SELECT $cols FROM users WHERE " . Identity::column() . ' = ?', [$key]));
         // Always do one hash verification so that unknown IDs take as long as known ones.
         $ok = password_verify($password, $u['password_hash'] ?? self::dummy());
 
@@ -184,7 +187,7 @@ final class Auth
         return max(
             self::remaining('ident = ? AND ip = ?', [$ident, $ip], $max, $win),
             self::remaining('ident = ?', [$ident], $max * 4, $win),
-            self::remaining("ip = ? AND ident <> '~reset'", [$ip], $max * 6, $win)
+            self::remaining("ip = ? AND ident NOT IN ('~reset', '~signup')", [$ip], $max * 6, $win)
         );
     }
 
@@ -226,5 +229,16 @@ final class Auth
     public static function recordReset(string $ip): void
     {
         DB::exec("INSERT INTO login_attempts (ident, ip, success) VALUES ('~reset', ?, 0)", [$ip]);
+    }
+
+    /** Reader sign-ups are limited to 5 per hour per IP. */
+    public static function signupThrottled(string $ip): bool
+    {
+        return (int) DB::val("SELECT COUNT(*) FROM login_attempts WHERE ident = '~signup' AND ip = ? AND created_at > (NOW() - INTERVAL 60 MINUTE)", [$ip]) >= 5;
+    }
+
+    public static function recordSignup(string $ip): void
+    {
+        DB::exec("INSERT INTO login_attempts (ident, ip, success) VALUES ('~signup', ?, 0)", [$ip]);
     }
 }

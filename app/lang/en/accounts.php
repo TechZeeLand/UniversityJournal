@@ -200,7 +200,7 @@ return [
   'tech.open' => 'Open',
   'tech.system' => 'System',
   'tech.source' => 'Source code link',
-  'tech.source_unset' => 'not set (required by the AGPL for public sites)',
+  'tech.source_unset' => 'not set (optional)',
   'audit.title' => 'Audit log',
   'audit.search' => 'Search action, ID or IP',
   'audit.th_time' => 'Time',

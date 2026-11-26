@@ -46,7 +46,7 @@ final class Users
     public static function canManage(array $actor, array $target): bool
     {
         if ($actor['role'] === 'tech_admin') return true;
-        return $actor['role'] === 'moderator' && in_array($target['role'], ['student', 'teacher'], true);
+        return $actor['role'] === 'moderator' && in_array($target['role'], ['student', 'teacher', 'reader'], true);
     }
 
     public static function newPublicId(): string
