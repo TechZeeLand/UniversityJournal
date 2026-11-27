@@ -33,7 +33,7 @@ final class Auth
         }
 
         $row = DB::one(
-            'SELECT u.id, u.uid, u.serial_no, u.public_id, u.public_no, u.public_slug, u.role, u.status, u.must_change_password, u.email, u.auth_epoch, u.has_password, u.google_sub,
+            'SELECT u.id, u.uid, u.serial_no, u.public_id, u.public_no, u.public_slug, u.role, u.status, u.must_change_password, u.email, u.auth_epoch, u.has_password, u.google_sub, u.email_verified_at, u.email_notify,
                     p.full_name, p.full_name_bn, p.photo_path, p.profile_complete, p.is_public
                FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id WHERE u.id = ?',
             [$id]
@@ -139,7 +139,7 @@ final class Auth
         $_SESSION['epoch'] = (int) $u['auth_epoch'];
         $_SESSION['last_seen'] = time();
         unset($_SESSION['_csrf']);
-        DB::exec('UPDATE users SET last_login_at = NOW() WHERE id = ?', [(int) $u['id']]);
+        DB::exec('UPDATE users SET last_login_at = NOW(), pref_lang = ? WHERE id = ?', [I18n::locale(), (int) $u['id']]);
         self::$user = null;
         self::$loaded = false;
     }

@@ -59,3 +59,13 @@ An open-source (GPL-3.0-or-later) article publishing platform for a university, 
 - **Reader accounts** (role `reader`) for people outside the university: read, like, dislike, comment only. Sign-up by **plain email** or **Google OAuth**, both configurable (on/off, Google client ID/secret) from the Tech portal. Readers sign in with their email on the normal login page. They have no profile page, cannot write.
 - **Publishing workflow**: draft, submitted, changes requested, published, rejected, archived. Tech setting decides whether moderator approval is required (default yes). Moderators can attach a review label (editor reviewed, peer reviewed) and feature an article.
 - **Design goal**: every page attractive, the home page especially.
+
+## Decisions added 2026-11-27 (Phase 1E-a2 Email)
+- **Outgoing email** uses the owner's own SMTP server, set in Tech portal > Settings > Email (own small SMTP client, no library). Off until configured. A test button shows the server's exact answer; a log of the last sends (no bodies) is kept 90 days.
+- **Email is verified, never assumed**: reader sign-up sends a link (3 days); Google accounts count as verified; changing an address un-verifies it. Notifications go only to verified addresses.
+- **Password reset**: readers can reset by email (link valid 60 minutes, single use, tokens stored only as SHA-256). University accounts keep the **moderator-approved** reset (decision from the start) unless the Tech portal switch "students and teachers with a verified email can reset by email" is turned on (default off).
+- **Notifications** (all switchable in the Tech portal, each person can opt out): article published / changes requested / rejected to the author; new comment or reply to the article author and the answered commenter. Sent after the page is delivered, in the recipient's language (`users.pref_lang`).
+- **Optional rule**: readers must verify their email before liking or commenting (default off, only applies when email works).
+- **Search and feeds**: `/sitemap.xml`, `/feed.xml`, `/robots.txt`, with a master switch for search-engine indexing, all in Tech portal > Settings > Search and feeds.
+- 2FA by email code stays planned for Phase 1E-b; it can now use the same mailer.
+

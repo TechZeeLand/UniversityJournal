@@ -1,5 +1,5 @@
 <?php
-/** @var array $actor, $groups, $fields, $values, $errors, $fontNames; @var string $group; @var ?array $idInfo; @var int $maxMb */
+/** @var array $actor, $groups, $fields, $values, $errors, $fontNames; @var string $group; @var ?array $idInfo; @var int $maxMb; @var array $mailLog; @var string $mailTo */
 use App\Core\{Csrf, View};
 ?>
 <section class="section">
@@ -44,6 +44,11 @@ use App\Core\{Csrf, View};
     <?php if ($group === 'readers'): ?>
       <div class="alert alert-info" role="note"><?= icon('info') ?><span><?= e(t('readers.intro')) ?><br>
         <?= e(t('readers.redirect')) ?> <code><?= e(\App\Services\GoogleAuth::redirectUri()) ?></code></span></div>
+    <?php endif; ?>
+    <?php if ($group === 'email') View::partial('tech/_email_tools', ['mailLog' => $mailLog, 'mailTo' => $mailTo]); ?>
+    <?php if ($group === 'seo'): ?>
+      <div class="alert alert-info" role="note"><?= icon('info') ?><span><?= e(t('seo.intro')) ?>
+        <a href="/sitemap.xml">/sitemap.xml</a> · <a href="/feed.xml">/feed.xml</a> · <a href="/robots.txt">/robots.txt</a></span></div>
     <?php endif; ?>
     <?php if ($group === 'backups'): ?>
       <p><a class="btn btn-ghost btn-sm" href="/tech/backups"><?= icon('hard-drive') ?> <?= e(t('backups.title')) ?></a></p>

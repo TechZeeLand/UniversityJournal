@@ -32,3 +32,7 @@ ALL data (database, uploads, backups) is in one folder on the host, `DATA_DIR` (
 - The first tech admin is created from `INITIAL_ADMIN_UID` / `INITIAL_ADMIN_PASSWORD` and must change the password at first sign-in.
 - If the only tech admin is locked out: `docker exec -it university-journal php /var/www/app/bin/reset-password.php <university-id>` prints a temporary password.
 - Behind a reverse proxy, set `TRUSTED_PROXIES` to the proxy's IP/CIDR if it is not on a private network, so login lockout sees real visitor IPs.
+
+## Email
+Outgoing email is set up in the Tech portal (Settings > Email): SMTP server, port, encryption, user and password, sender. Use "Send test email" to check it. Backups contain the saved SMTP password, so keep them private. Gmail needs an app password (port 587, STARTTLS).
+

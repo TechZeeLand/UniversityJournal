@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-use App\Controllers\{AccountController, ArticleController, AuthController, ModeratorController, ModerationController, PublicController, ReaderController, SiteAdminController, TechController, WriterController};
+use App\Controllers\{AccountController, ArticleController, AuthController, EmailController, SeoController, ModeratorController, ModerationController, PublicController, ReaderController, SiteAdminController, TechController, WriterController};
 use App\Core\{DB, I18n, Theme, View};
 
 /** @var App\Core\Router $router */
@@ -43,6 +43,17 @@ $router->post('/account/password', [AccountController::class, 'passwordSave']);
 $router->get('/profile', [AccountController::class, 'profileForm']);
 $router->post('/profile', [AccountController::class, 'profileSave']);
 
+// ---- email links: verify an address, reset a password by email ----
+$router->get('/verify/{token}', [EmailController::class, 'verify']);
+$router->post('/account/verify-email', [EmailController::class, 'resend']);
+$router->get('/reset/{token}', [EmailController::class, 'resetForm']);
+$router->post('/reset/{token}', [EmailController::class, 'resetSave']);
+
+// ---- robots.txt, sitemap, RSS feed ----
+$router->get('/robots.txt', [SeoController::class, 'robots']);
+$router->get('/sitemap.xml', [SeoController::class, 'sitemap']);
+$router->get('/feed.xml', [SeoController::class, 'feed']);
+
 // ---- moderator portal (specific paths first, {id} last) ----
 $router->get('/moderator', [ModeratorController::class, 'index']);
 $router->get('/moderator/users', [ModeratorController::class, 'users']);
@@ -66,6 +77,7 @@ $router->get('/tech', [TechController::class, 'index']);
 $router->get('/tech/audit', [TechController::class, 'audit']);
 $router->get('/tech/settings', [TechController::class, 'settingsIndex']);
 $router->post('/tech/settings/id-mode', [TechController::class, 'idModeSave']);   // before {group}
+$router->post('/tech/email/test', [TechController::class, 'emailTest']);
 $router->get('/tech/settings/{group}', [TechController::class, 'settings']);
 $router->post('/tech/settings/{group}', [TechController::class, 'settingsSave']);
 $router->post('/tech/branding/{slot}', [TechController::class, 'brandingSave']);

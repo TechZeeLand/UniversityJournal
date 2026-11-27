@@ -8,6 +8,7 @@
         <a class="btn btn-ghost" href="/login"><?= e(t('auth.back_login')) ?></a>
       <?php else: ?>
         <p class="muted"><?= e(\App\Core\Identity::t('auth.forgot_sub')) ?></p>
+        <?php if (\App\Services\Mailer::configured()): ?><p class="muted small"><?= icon('mail') ?> <?= e(t('email.forgot_hint')) ?></p><?php endif; ?>
         <?php if (!empty($error)): ?>
           <div class="alert alert-error" role="alert"><?= icon('circle-alert') ?><span><?= e($error) ?></span></div>
         <?php endif; ?>

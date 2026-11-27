@@ -1,8 +1,8 @@
 <?php
 namespace App\Controllers;
 
-use App\Core\{Audit, Auth, DB, Flash, Password, Request, View};
-use App\Services\{Avatar, GoogleAuth, Readers};
+use App\Core\{Audit, Auth, DB, Flash, Password, Request, Settings, View};
+use App\Services\{Avatar, GoogleAuth, Mailer, Notify, Readers};
 
 /** Reader accounts: sign up (email or Google), the reader's own account page. */
 final class ReaderController
@@ -58,7 +58,8 @@ final class ReaderController
         Auth::recordSignup($ip);
         $id = Readers::create($old['name'], $old['email'], $pw, null);
         Audit::log('reader.signup', 'reader#' . $id, 'email', $id);
-        Flash::add('ok', t('reader.welcome'));
+        $verify = Mailer::configured() && Settings::get('reader_verify_email', '1') === '1' && Notify::verification($id);
+        Flash::add('ok', t($verify ? 'reader.welcome_verify' : 'reader.welcome', ['email' => $old['email']]));
         self::enter($id, $next);
     }
 
@@ -97,7 +98,7 @@ final class ReaderController
                 Flash::add('error', t('reader.err_university_email'));
                 redirect('/login');
             }
-            DB::exec('UPDATE users SET google_sub = ? WHERE id = ? AND google_sub IS NULL', [$g['sub'], (int) $byEmail['id']]);
+            DB::exec('UPDATE users SET google_sub = ?, email_verified_at = COALESCE(email_verified_at, NOW()) WHERE id = ? AND google_sub IS NULL', [$g['sub'], (int) $byEmail['id']]);
             self::enter((int) $byEmail['id'], $next);
         }
         $id = Readers::create($g['name'], $g['email'], null, $g['sub']);
@@ -138,6 +139,7 @@ final class ReaderController
             catch (\RuntimeException $e) { http_response_code(422); self::showAccount($u, t('profile.' . $e->getMessage(), ['mb' => max(1, (int) setting('upload_max_image_mb', '5'))])); return; }
         } elseif (post('remove_photo') === '1') { $photo = null; }
         DB::exec('UPDATE user_profiles SET full_name = ?, photo_path = ? WHERE user_id = ?', [$name, $photo, (int) $u['id']]);
+        DB::exec('UPDATE users SET email_notify = ? WHERE id = ?', [post('email_notify') === '1' ? 1 : 0, (int) $u['id']]);
         if ($old && $old !== $photo) Avatar::delete((string) $old);
         Flash::add('ok', t('reader.saved'));
         redirect('/account');

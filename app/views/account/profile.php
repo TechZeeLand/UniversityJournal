@@ -90,6 +90,8 @@ $isStudent = $u['role'] === 'student';
         <input id="email" name="email" type="email" maxlength="190" value="<?= e($old['email']) ?>" autocomplete="email">
         <p class="field-hint"><?= e(t('profile.email_hint')) ?></p>
         <?= $fe('email') ?>
+        <label class="check"><input type="checkbox" name="email_notify" value="1"<?= (int) ($u['email_notify'] ?? 1) === 1 ? ' checked' : '' ?>> <?= e(t('email.notify_opt')) ?></label>
+        <p class="field-hint"><?= e(t('email.notify_opt_d')) ?></p>
       </div>
 
       <?php if (in_array($u['role'], ['student', 'teacher'], true)): ?>

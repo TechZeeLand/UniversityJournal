@@ -92,6 +92,30 @@ final class TechSettings
                 ['key' => 'comment_cooldown_sec', 'type' => 'int', 'min' => 0, 'max' => 600, 'default' => '20', 'grp' => 'engagement'],
                 ['key' => 'publish_needs_review', 'type' => 'bool', 'default' => '1', 'grp' => 'engagement', 'heading' => 'set.h.publishing'],
             ]],
+            'email' => ['icon' => 'mail', 'fields' => [
+                ['key' => 'smtp_enabled', 'type' => 'bool', 'default' => '0', 'grp' => 'email', 'heading' => 'set.h.smtp'],
+                ['key' => 'smtp_host', 'type' => 'text', 'max_len' => 190, 'default' => '', 'grp' => 'email'],
+                ['key' => 'smtp_port', 'type' => 'int', 'min' => 1, 'max' => 65535, 'default' => '587', 'grp' => 'email'],
+                ['key' => 'smtp_security', 'type' => 'select', 'options' => ['starttls', 'ssl', 'none'], 'default' => 'starttls', 'grp' => 'email'],
+                ['key' => 'smtp_user', 'type' => 'text', 'max_len' => 190, 'default' => '', 'grp' => 'email'],
+                ['key' => 'smtp_password', 'type' => 'secret', 'max_len' => 200, 'default' => '', 'grp' => 'email'],
+                ['key' => 'smtp_verify_cert', 'type' => 'bool', 'default' => '1', 'grp' => 'email'],
+                ['key' => 'mail_from_email', 'type' => 'email', 'default' => '', 'grp' => 'email', 'heading' => 'set.h.mail_from'],
+                ['key' => 'mail_from_name', 'type' => 'text', 'max_len' => 80, 'default' => '', 'grp' => 'email'],
+                ['key' => 'mail_reply_to', 'type' => 'email', 'default' => '', 'grp' => 'email'],
+                ['key' => 'reader_verify_email', 'type' => 'bool', 'default' => '1', 'grp' => 'email', 'heading' => 'set.h.mail_uses'],
+                ['key' => 'reader_require_verified', 'type' => 'bool', 'default' => '0', 'grp' => 'email'],
+                ['key' => 'email_reset_readers', 'type' => 'bool', 'default' => '1', 'grp' => 'email'],
+                ['key' => 'email_reset_university', 'type' => 'bool', 'default' => '0', 'grp' => 'email'],
+                ['key' => 'notify_author_status', 'type' => 'bool', 'default' => '1', 'grp' => 'email'],
+                ['key' => 'notify_comments', 'type' => 'bool', 'default' => '1', 'grp' => 'email'],
+            ]],
+            'seo' => ['icon' => 'globe', 'fields' => [
+                ['key' => 'seo_indexing', 'type' => 'bool', 'default' => '1', 'grp' => 'seo'],
+                ['key' => 'sitemap_enabled', 'type' => 'bool', 'default' => '1', 'grp' => 'seo'],
+                ['key' => 'feed_enabled', 'type' => 'bool', 'default' => '1', 'grp' => 'seo'],
+                ['key' => 'feed_items', 'type' => 'int', 'min' => 5, 'max' => 100, 'default' => '30', 'grp' => 'seo'],
+            ]],
             'accounts' => ['icon' => 'users', 'fields' => [
                 ['key' => 'password_min_length', 'type' => 'int', 'min' => 6, 'max' => 64, 'default' => '8', 'grp' => 'security'],
                 ['key' => 'login_max_attempts', 'type' => 'int', 'min' => 3, 'max' => 20, 'default' => '5', 'grp' => 'security'],
@@ -196,6 +220,14 @@ final class TechSettings
                 default: // text, textarea
                     if (!empty($f['required']) && $v === '') $errors[$k] = t('set.err_required');
                     elseif (mb_strlen($v) > $f['max_len']) $errors[$k] = t('set.err_long', ['max' => $f['max_len']]);
+            }
+        }
+        if ($group === 'email') {
+            $host = (string) ($vals['smtp_host'] ?? '');
+            if ($host !== '' && preg_match('/^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$/', $host) !== 1) $errors['smtp_host'] = t('set.err_host');
+            if (($vals['smtp_enabled'] ?? '0') === '1') {
+                if ($host === '' && !isset($errors['smtp_host'])) $errors['smtp_host'] = t('set.err_required');
+                if (($vals['mail_from_email'] ?? '') === '' && !isset($errors['mail_from_email'])) $errors['mail_from_email'] = t('set.err_required');
             }
         }
         return [$vals, $errors];

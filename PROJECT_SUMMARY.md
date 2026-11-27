@@ -1,6 +1,6 @@
 # University Journal: full summary
 
-Last updated: 2026-11-26. Status: Phase 1A built and deployed; Phases 1B, 1B+ and 1E-a (data folder, branding uploads, public addresses, editable site content) written, awaiting your build and test.
+Last updated: 2026-11-27. Status: Phase 1A built and deployed; Phases 1B, 1B+, 1E-a, 1C/1D first slice and 1E-a2 (email) written, awaiting your build and test (no PHP in my sandbox, so only static checks were possible).
 
 ## 1. What the project is
 An article publishing site for your university where students and professors publish their work. It is a student initiative; university officials are not involved yet. Licence: **GPL-3.0-or-later** (open source). Code lives on GitHub (also the backup) and is deployed by pulling the repo into Docker through Portainer's repository option, like your other projects.
@@ -67,7 +67,7 @@ I can't see my own token count, so I refresh `PROJECT.md` and `PROGRESS.md` afte
 | 1E-a | One data folder, logo/icon uploads, brand colours, fonts tab, public addresses and profile pages, editable pages/menus/texts, profile rules, backups | Written, needs your test |
 | 1C | Article types, editor, submission workflow, moderator review queue | First slice written (2026-11-27), needs your test |
 | 1D | Newspaper home, explore with filters, article page, likes/dislikes/comments/share, reader accounts (email + Google) | First slice written (2026-11-27), needs your test |
-| 1E-a2 | Email (SMTP) tab with test button | Planned |
+| 1E-a2 | Email (SMTP) tab with test button, email verification, reset by email, notifications, sitemap/RSS/robots | Written (2026-11-27), needs your test |
 | 1E-b | Security: 2FA by email code and authenticator app, devices list, trusted devices | Planned (you asked me to note it and pick the phase) |
 | 2 | Community discussions, ads page, reviewer assignment, citations, versions, PDF export, analytics | Planned |
 | 3 | Further ideas from your ideas file (collections and journals, ORCID, collaboration, etc.) | Planned |
@@ -113,3 +113,8 @@ Data lives in the volumes `journal-db` and `journal-storage`; back them up.
 ## 10. Your requests of 2026-11-26/27 (recorded, built in this order)
 1. Switch to the GPL licence. 2. Home page: latest ~20 articles below the cards, in an interesting newspaper style. 3. Explore page filters: by date, new-to-old, old-to-new, most-rated, most-read and similar. 4. People can like, dislike, comment on and share articles. 5. People outside the university can create reader-only accounts (read, like, dislike, comment) with plain email or Google OAuth, configurable from the Tech portal. 6. Make all pages attractive, the home page especially.
 You also asked me to record these decisions in the progress and project files, do the work in that order when I see fit, make improvements, ask questions when needed, fix bugs on the way and keep reporting progress. See PROGRESS.md (top section) for what was built and the test checklist.
+
+## 11. Phase 1E-a2 (2026-11-27): email
+Built: Tech portal Email tab (SMTP, test button, send log), reader email verification (optional "must verify to like/comment"), forgot-password by email for readers (and optionally verified university accounts), email to authors about article decisions and comments, per-person opt-out, sitemap, RSS feed, robots.txt and an indexing switch. Details, test checklist and known gaps are at the top of PROGRESS.md. Decisions are in PROJECT.md (Decisions added 2026-11-27, Phase 1E-a2).
+**Next (my proposal):** test everything built so far, then Phase 1E-b Security (2FA by email code and authenticator app, devices list), then publishing extras (autosave, editing after publish, tags, bookmarks).
+

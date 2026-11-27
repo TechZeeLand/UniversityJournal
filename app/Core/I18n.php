@@ -58,6 +58,21 @@ final class I18n
 
     public static function locale(): string { return self::$locale; }
 
+    /** Run $fn with another interface language (for example to write an email in the recipient's language). */
+    public static function using(string $loc, callable $fn): mixed
+    {
+        if (!isset(self::LOCALES[$loc]) || $loc === self::$locale) return $fn();
+        $saved = [self::$locale, self::$strings, self::$ovr];
+        self::$locale = $loc;
+        self::$strings = self::load($loc);
+        self::$ovr = self::loadOverrides(array_values(array_unique([$loc, 'en'])));
+        try {
+            return $fn();
+        } finally {
+            [self::$locale, self::$strings, self::$ovr] = $saved;
+        }
+    }
+
     public static function set(string $code): bool
     {
         if (!isset(self::LOCALES[$code])) return false;

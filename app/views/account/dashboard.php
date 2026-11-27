@@ -9,6 +9,7 @@
       </div>
     </div>
 
+    <?php \App\Core\View::partial('account/_email_status', ['u' => $u]); ?>
     <?php if ($missing): ?>
       <div class="alert alert-warn">
         <?= icon('triangle-alert') ?>

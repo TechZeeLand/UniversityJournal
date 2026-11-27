@@ -2,7 +2,7 @@
 namespace App\Controllers;
 
 use App\Core\{Audit, Auth, DB, Flash, Identity, Paths, Settings, View};
-use App\Services\{Backups, Branding, FontList, Profile, TechSettings};
+use App\Services\{Backups, Branding, FontList, Mailer, Profile, TechSettings};
 
 /** Tech portal (tech admins only). Phase 1E adds the full settings editor here. */
 final class TechController
@@ -100,7 +100,25 @@ final class TechController
             'fields' => TechSettings::groups()[$group]['fields'], 'values' => $values, 'errors' => $errors, 'idInfo' => $idInfo,
             'fontNames' => $group === 'fonts' ? FontList::names() : [],
             'maxMb' => max(1, (int) setting('upload_max_image_mb', '5')),
+            'mailLog' => $group === 'email' ? Mailer::recent(10) : [],
+            'mailTo' => (string) (DB::val('SELECT email FROM users WHERE id = ?', [(int) $actor['id']]) ?? ''),
         ]);
+    }
+
+    /** Send a test email with the saved settings and report exactly what the mail server said. */
+    public static function emailTest(): void
+    {
+        $actor = Auth::needRole('tech_admin');
+        $to = mb_substr(post('to'), 0, 190);
+        if (filter_var($to, FILTER_VALIDATE_EMAIL) === false) { Flash::add('error', t('set.err_email')); redirect('/tech/settings/email'); }
+        if (!Mailer::configured()) { Flash::add('error', t('email.test_off')); redirect('/tech/settings/email'); }
+        if (time() - (int) ($_SESSION['mail_test_at'] ?? 0) < 5) { Flash::add('error', t('email.test_fast')); redirect('/tech/settings/email'); }
+        $_SESSION['mail_test_at'] = time();
+        [$text, $html] = Mailer::compose(t('email.test_h'), [t('email.test_p', ['site' => site_name()])]);
+        $res = Mailer::send($to, t('email.test_s', ['site' => site_name()]), $text, $html, 'test');
+        Audit::log('email.test', $to, $res['ok'] ? 'sent' : (string) $res['error'], (int) $actor['id']);
+        Flash::add($res['ok'] ? 'ok' : 'error', $res['ok'] ? t('email.test_ok', ['to' => $to]) : t('email.test_fail', ['err' => (string) $res['error']]));
+        redirect('/tech/settings/email');
     }
 
     /** Upload or remove one brand picture (logo, dark logo, icon, share picture). */

@@ -1,6 +1,43 @@
 # Progress
 
-Last updated: 2026-11-26 (Phase 1E-a written: data folder, branding uploads, public addresses, editable site; Phases 1B, 1B+ and 1E-a are NOT yet tested, the sandbox has no PHP)
+Last updated: 2026-11-27 (Phase 1E-a2 written: Email/SMTP, verification, reset by email, notifications, sitemap/RSS/robots. Written WITHOUT PHP in my sandbox: static lint only. Please build and test)
+
+## Done: Phase 1E-a2 "Email" (2026-11-27) - written, UNTESTED (static lint only: brackets in 122 PHP files, 871 language keys in en/bn with parity, every `t('key')` exists, every `Class::method` exists and is imported, no reserved-word SQL aliases; the linter is a script I wrote because the sandbox has no PHP)
+
+**What you can now do**
+1. **Tech portal > Settings > Email** (new tab): SMTP server, port, encryption (STARTTLS / SSL / none), username, password (write-only, never shown again), "verify the server certificate" switch, sender address and name, reply-to. A **status card and "Send test email" button** show exactly what the mail server answered if it fails, plus a table of the last 10 emails (sent/failed, no message bodies stored). Nothing is sent until it is switched on and the server and sender address are filled in.
+2. **What the site uses email for** (all switchable on the same tab):
+   - **Verify a reader's email** (link, valid 3 days). Optional rule: readers must verify before they can like or comment (off by default). Google readers count as verified. Anyone can request the link again from their account page (once a minute).
+   - **Forgot password by email**: a reader types their email on `/forgot` and gets a one-time link (valid 60 minutes, single use) to `/reset/<token>`. Optional (off by default): students and teachers with a **verified** email can do the same; otherwise a moderator still approves every university reset, as you decided. The reply on the page is identical whether or not an account exists. Using the link also signs the person out everywhere else.
+   - **Article decisions**: the author gets an email when their article is published, needs changes (with the moderator's note) or is rejected.
+   - **Comments**: the article's author, and the author of the comment being answered, get an email about new comments/replies.
+   - Each person can switch these off with one checkbox on their account/profile page. Emails go only to **verified** addresses and are written in the person's last-used language (English or Bangla).
+3. **Sending never slows a page**: mail is sent after the page has been delivered to the visitor (PHP-FPM `fastcgi_finish_request`), so a slow mail server does not make anyone wait.
+4. **Search and feeds** (new tab Settings > Search and feeds): `/sitemap.xml` (home, explore, pages, published articles, public profiles), `/feed.xml` (RSS of the latest articles, count editable), `/robots.txt` (keeps portals, login and write pages out of search engines). One switch turns indexing off for the whole site (robots + `noindex`). The RSS link is advertised in the page head.
+5. Changing your email on the profile page marks it **unverified** until it is confirmed again.
+
+**Technical**: migration `008_email.sql` (`users.email_verified_at`, `users.pref_lang`, `users.email_notify`, tables `email_tokens` (only a SHA-256 of each token is stored) and `email_log`, new settings). New: `Core/Smtp.php` (own SMTP client, AUTH PLAIN/LOGIN, STARTTLS, implicit TLS, dot-stuffing, readable errors), `Services/Mailer.php`, `EmailTokens.php`, `Notify.php`, `Controllers/EmailController.php`, `SeoController.php`, `views/auth/reset.php`, `views/tech/_email_tools.php`, `views/account/_email_status.php`, `lang/*/email.php`, `I18n::using()` (write an email in the recipient's language).
+
+**Bugs fixed on the way**
+- The new email table used a CSS class that does not exist (`table`); the site's class is `tbl`.
+- While reviewing the untested Phase 1C/1D code I checked sort/filter SQL, slugs (Bangla titles keep their letters), period filters and counters. I found no new defect there; the earlier two (reserved word `reads`, Bangla digits) stay fixed.
+
+**Test checklist for 1E-a2**
+- [ ] Redeploy: migration 008 applies. `/tech/settings/email` opens. `/robots.txt`, `/sitemap.xml`, `/feed.xml` load.
+- [ ] Fill in your SMTP details, switch on, save, press **Send test email** to your own address. If it fails, send me the red message.
+- [ ] Register a new reader with email: you get the confirmation mail, the link verifies, the account page shows "Email confirmed".
+- [ ] `/forgot` with the reader's email: you get the reset mail, `/reset/<token>` sets a password, the link cannot be used twice.
+- [ ] Turn on "readers must confirm email", try to like with an unverified reader: you land on the account page with a message.
+- [ ] Publish a student's article as moderator: the student (with a verified email) gets the mail. Comment and reply on an article: the other party gets mail. Untick the checkbox on the profile page: no more mail.
+- [ ] Settings > Search and feeds: switch indexing off, check robots.txt says `Disallow: /`.
+- Gmail needs an **app password** (2-step verification on); port 587 + STARTTLS.
+
+**Known gaps / for next time**
+- A student's or teacher's email is not verified at account creation; they confirm it from their dashboard.
+- Emails are sent one at a time without a retry queue; failures show in the Email tab. A proper queue with retries can come with the notifications phase.
+- Moderator list of readers does not show the verified badge yet.
+- No "email moderators when an article is submitted" yet (easy to add; tell me if you want it).
+
 
 ## Done: Phase 1C + 1D first slice (2026-11-27) - written, UNTESTED (no PHP in my sandbox; static lint only: brackets in all 110 PHP files, language keys en/bn parity, helper/method names, JS syntax)
 
@@ -88,7 +125,7 @@ Last updated: 2026-11-26 (Phase 1E-a written: data folder, branding uploads, pub
 - **Principle: the Tech portal can do everything.** Any text, setting, limit, page, font, toggle or feature switch should be editable there instead of in code. Every new feature from now on ships with its Tech settings tab or section.
 
 ## Suggested next phases
-1. **1E-a (done, see top)**. Remaining from it: Email (SMTP) tab with a test-email button.
+1. **1E-a / 1E-a2 (done)**. SMTP tab and test button now exist (see top).
 2. **1E-b Security**: 2FA (email and app), devices list, trusted devices.
 3. **1C Publishing (first slice done, see top)**. Remaining: autosave, versions/editing after publish, peer-review rounds, tags, drafts shared with co-authors.
 4. **1D Public site (home, explore, article page done)**. Remaining: RSS, sitemap, PWA, per-author pages listing their articles, better search.

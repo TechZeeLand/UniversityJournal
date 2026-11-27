@@ -2,7 +2,7 @@
 namespace App\Controllers;
 
 use App\Core\{Audit, Auth, DB, Flash, Markdown, View};
-use App\Services\{Articles, Engagement};
+use App\Services\{Articles, Engagement, Notify};
 
 /** Moderator portal: review queue, comments, reader accounts. */
 final class ModerationController
@@ -37,6 +37,7 @@ final class ModerationController
         }
         if (Articles::review((int) $a['id'], $action, (int) $actor['id'], $note, post('label'))) {
             Audit::log('article.' . $action, (string) $a['id'], mb_substr((string) $a['title'], 0, 80), (int) $actor['id']);
+            Notify::articleDecision($a, $action, $note);
             Flash::add('ok', t('review.done_' . $action));
         } else {
             Flash::add('error', t('review.err_state'));

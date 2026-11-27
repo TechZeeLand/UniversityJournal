@@ -34,6 +34,10 @@ $otherLang = $loc === 'en' ? 'bn' : 'en';
 <?php if ($ogImage !== null): ?>  <meta property="og:image" content="<?= e(abs_url($ogImage)) ?>">
   <meta name="twitter:card" content="summary_large_image">
 <?php endif; ?>
+<?php if (setting('feed_enabled', '1') === '1' && setting('seo_indexing', '1') === '1'): ?>  <link rel="alternate" type="application/rss+xml" title="<?= e($site) ?>" href="/feed.xml">
+<?php endif; ?>
+<?php if (setting('seo_indexing', '1') !== '1'): ?>  <meta name="robots" content="noindex,nofollow">
+<?php endif; ?>
   <link rel="icon" href="<?= e($icon ?? asset('logo.svg')) ?>" type="<?= e($iconType) ?>">
 <?php if ($icon !== null && $iconType === 'image/png'): ?>  <link rel="apple-touch-icon" href="<?= e($icon) ?>">
 <?php endif; ?>

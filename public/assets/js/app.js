@@ -88,6 +88,7 @@
         .then(function (x) {
           var j = x[1];
           if (x[0] === 401 && j.login) { window.location.href = j.login; return; }
+          if (x[0] === 403 && j.redirect) { window.location.href = j.redirect; return; }
           if (!j.ok) return;
           var fmt = function (n) { return document.documentElement.lang === 'bn' ? String(n).replace(/\d/g, function (d) { return '০১২৩৪৫৬৭৮৯'[d]; }) : String(n); };
           box.querySelector('[data-count="like"]').textContent = fmt(j.like);

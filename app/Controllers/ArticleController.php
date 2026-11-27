@@ -2,7 +2,7 @@
 namespace App\Controllers;
 
 use App\Core\{Audit, Auth, Flash, Markdown, Request, View};
-use App\Services\{Articles, Engagement, Profile};
+use App\Services\{Articles, Engagement, Notify, Profile, Readers};
 
 /** What visitors and signed-in readers do with published articles: read, explore, react, comment, share. */
 final class ArticleController
@@ -106,6 +106,11 @@ final class ArticleController
             redirect('/login?next=' . rawurlencode(Articles::url($a)));
         }
         if (!Engagement::reactionsOn()) abort(403);
+        if (!Readers::mayInteract($u)) {
+            Flash::add('error', t('email.need_verified'));
+            if (self::wantsJson()) self::json(['ok' => false, 'redirect' => '/account'], 403);
+            redirect('/account');
+        }
         $v = post('value') === 'dislike' ? -1 : 1;
         $r = Engagement::react((int) $a['id'], (int) $u['id'], $v);
         if (self::wantsJson()) self::json(['ok' => true] + $r);
@@ -122,9 +127,14 @@ final class ArticleController
             redirect('/login?next=' . rawurlencode($back));
         }
         if (!Engagement::commentsOn()) abort(403);
+        if (!Readers::mayInteract($u)) {
+            Flash::add('error', t('email.need_verified'));
+            redirect('/account');
+        }
         $parent = ctype_digit(post('parent')) && post('parent') !== '0' ? (int) post('parent') : null;
         $res = Engagement::addComment((int) $a['id'], (int) $u['id'], (string) ($_POST['body'] ?? ''), $parent);
         if ($res['ok']) {
+            Notify::commentPosted($a, (int) $u['id'], $parent);
             Flash::add('ok', t('eng.posted'));
         } else {
             Flash::add('error', t('eng.' . $res['error'], ['n' => $res['wait'] ?? 0]));

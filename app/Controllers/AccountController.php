@@ -177,7 +177,12 @@ final class AccountController
                 nn($photo), (int) $in['is_public'],
             ]
         );
-        DB::exec('UPDATE users SET email = ? WHERE id = ?', [nn($in['email']), $id]);
+        $newEmail = nn(mb_strtolower($in['email']));
+        $oldEmail = $u['email'] === null ? null : mb_strtolower((string) $u['email']);
+        if ($newEmail !== $oldEmail) {
+            DB::exec('UPDATE users SET email = ?, email_verified_at = NULL WHERE id = ?', [$newEmail, $id]);   // a new address has to be confirmed again
+        }
+        DB::exec('UPDATE users SET email_notify = ? WHERE id = ?', [post('email_notify') === '1' ? 1 : 0, $id]);
         if ($oldPhoto !== '' && $oldPhoto !== $photo) Avatar::delete($oldPhoto);
 
         Profile::recalc($id);
