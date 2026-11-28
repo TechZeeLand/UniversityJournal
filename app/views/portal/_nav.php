@@ -10,6 +10,7 @@ $items = [
     'readers' => ['/moderator/readers', t('review.readers')],
     'resets' => ['/moderator/resets', t('resets.title')],
 ];
+$items['security'] = ['/security', t('sec.title')];
 if (($actor['role'] ?? '') === 'tech_admin') {
     $items['tech'] = ['/tech', t('portal.tech_title')];
     $items['settings'] = ['/tech/settings', t('settings.title')];

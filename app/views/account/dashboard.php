@@ -43,6 +43,12 @@
         <p><a class="btn btn-ghost btn-sm" href="/account/password"><?= e(t('pw.change_title')) ?></a></p>
       </article>
       <article class="card">
+        <span class="card-icon"><?= icon('shield-check') ?></span>
+        <h3><?= e(t('sec.title')) ?></h3>
+        <p class="muted"><?= e(t(\App\Services\TwoFactor::enabled((int) $u['id']) ? 'sec.card_on' : 'sec.card_off')) ?></p>
+        <p><a class="btn btn-ghost btn-sm" href="/security"><?= e(t('sec.card_btn')) ?></a></p>
+      </article>
+      <article class="card">
         <span class="card-icon"><?= icon('square-pen') ?></span>
         <h3><?= e(t('dash.card_write')) ?></h3>
         <p class="muted"><?= e(t('dash.write_d')) ?></p>

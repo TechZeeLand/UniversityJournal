@@ -42,6 +42,28 @@
     });
   });
 
+  // A list of codes (data-copy-list="#list" / data-download-list="#list"): one code per line, for backup codes
+  function listText(sel) {
+    var out = [];
+    document.querySelectorAll(sel + ' li').forEach(function (li) { out.push(li.textContent.trim()); });
+    return out.join('\n') + '\n';
+  }
+  document.querySelectorAll('[data-copy-list]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (navigator.clipboard) navigator.clipboard.writeText(listText(b.getAttribute('data-copy-list')));
+    });
+  });
+  document.querySelectorAll('[data-download-list]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var blob = new Blob([listText(b.getAttribute('data-download-list'))], { type: 'text/plain' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = b.getAttribute('data-filename') || 'codes.txt';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    });
+  });
+
   // Live preview of a chosen photo (data-preview="containerId")
   document.querySelectorAll('input[type=file][data-preview]').forEach(function (inp) {
     inp.addEventListener('change', function () {

@@ -42,6 +42,11 @@ final class Auth
             self::clear();
             return null;
         }
+        // The browser may have been signed out from the Security page ("sign out other devices").
+        if (!Sessions::valid($id)) {
+            self::clear();
+            return null;
+        }
         $_SESSION['last_seen'] = time();
         return self::$user = $row;
     }
@@ -65,7 +70,7 @@ final class Auth
 
     private static function clear(): void
     {
-        unset($_SESSION['uid'], $_SESSION['epoch'], $_SESSION['last_seen']);
+        unset($_SESSION['uid'], $_SESSION['epoch'], $_SESSION['last_seen'], $_SESSION['stok']);
         self::$user = null;
     }
 
@@ -138,7 +143,8 @@ final class Auth
         $_SESSION['uid'] = (int) $u['id'];
         $_SESSION['epoch'] = (int) $u['auth_epoch'];
         $_SESSION['last_seen'] = time();
-        unset($_SESSION['_csrf']);
+        unset($_SESSION['_csrf'], $_SESSION['pending2fa']);
+        Sessions::start((int) $u['id']);
         DB::exec('UPDATE users SET last_login_at = NOW(), pref_lang = ? WHERE id = ?', [I18n::locale(), (int) $u['id']]);
         self::$user = null;
         self::$loaded = false;
@@ -146,6 +152,7 @@ final class Auth
 
     public static function logout(): void
     {
+        Sessions::end();
         $_SESSION = [];
         session_regenerate_id(true);
         self::$user = null;
@@ -163,6 +170,9 @@ final class Auth
                     auth_epoch = auth_epoch + 1 WHERE id = ?',
             [password_hash($plain, PASSWORD_DEFAULT), $mustChange ? 1 : 0, $userId]
         );
+        // Everyone else is signed out (this browser stays when it is the person's own), and "trusted" browsers must prove themselves again.
+        Sessions::revokeAll($userId, true);
+        DB::exec('DELETE FROM trusted_devices WHERE user_id = ?', [$userId]);
         return (int) DB::val('SELECT auth_epoch FROM users WHERE id = ?', [$userId]);
     }
 

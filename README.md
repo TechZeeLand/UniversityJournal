@@ -31,6 +31,8 @@ ALL data (database, uploads, backups) is in one folder on the host, `DATA_DIR` (
 ## Accounts and recovery
 - The first tech admin is created from `INITIAL_ADMIN_UID` / `INITIAL_ADMIN_PASSWORD` and must change the password at first sign-in.
 - If the only tech admin is locked out: `docker exec -it university-journal php /var/www/app/bin/reset-password.php <university-id>` prints a temporary password.
+- If someone lost their phone and backup codes: `docker exec -it university-journal php /var/www/app/bin/reset-2fa.php <university-id>` removes their two-step sign-in. Back up `APP_KEY`: authenticator secrets are encrypted with it.
+- Before zipping a new version: `python3 tools/static-lint.py` (checks typing slips without PHP).
 - Behind a reverse proxy, set `TRUSTED_PROXIES` to the proxy's IP/CIDR if it is not on a private network, so login lockout sees real visitor IPs.
 
 ## Email

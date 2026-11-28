@@ -1,6 +1,52 @@
 # Progress
 
-Last updated: 2026-11-27 (Phase 1E-a2 written: Email/SMTP, verification, reset by email, notifications, sitemap/RSS/robots. Written WITHOUT PHP in my sandbox: static lint only. Please build and test)
+Last updated: 2026-11-28 (Phase 1E-b "Security" written: two-step sign-in with authenticator app and email code, backup codes, trusted browsers, signed-in devices list. Still written WITHOUT PHP in my sandbox: static checks only (see tools/static-lint.py). Please build and test, newest phase first.)
+
+## Done: Phase 1E-b "Security" (2026-11-28) - written, UNTESTED (static checks pass; the QR generator and the TOTP maths were tested for real, see below)
+
+**What you can now do**
+1. **Every signed-in person has a Security page** (`/security`; a card on the dashboard, a button on the reader account page, a tab in the portal menu):
+   - **Authenticator app** (Google Authenticator, Microsoft Authenticator, Aegis, 2FAS ...): a QR code drawn in the browser (no third-party request), plus the key to type by hand and an "open in my app" link for phones. The person types the first code and their password to switch it on.
+   - **Email code**: a 6-digit code to the person's *confirmed* address at each sign-in (valid 10 minutes by default, 5 tries, one use, a new one at most every 45 seconds). Needs working email (Settings > Email).
+   - **Backup codes**: 10 one-time codes (`XXXXX-XXXXX`) shown once, with Copy, Download and Print. Making new ones needs the password and kills the old set. Using one tells the person how many are left.
+   - **Trusted browsers**: a tick-box "do not ask again on this browser for N days" at the code step (default 30; 0 = always ask). List with Remove / Remove all. A password change removes all of them.
+   - **Where you are signed in**: every signed-in browser (browser and system name, IP, last active) with "Sign out" for one, and "Sign out all other browsers". New: signing out remotely really works, because each login is now a row in `user_sessions`.
+2. **Sign-in**: password first; if the person has a second step (and this browser is not trusted) they get `/login/2fa` with the method they use most, links to the other methods and a backup code. Wrong codes are rate limited (the same three-scope lockout as passwords, counted separately per person, so someone who knows a password still cannot guess codes); after 8 wrong codes the person starts over from the password.
+3. **Tech portal > Settings > Two-step sign-in** (new tab): master switch, allow app / allow email code (these only decide who can *set up* a method), **must use a second step** for tech admins / moderators / students and teachers (people are held on the Security page until set up; the public site stays open; nobody is held when no method can be set up, so nobody can be locked out by the rule), trusted-browser days, email-code minutes, backup codes per set, and "email people when security settings change".
+4. **Security emails** (to confirmed addresses, in the person's language): the sign-in code; second step turned on or off; new backup codes; other browsers signed out; an admin removed the second step.
+5. **Moderators and tech admins** see "Two-step sign-in: on / not set up" on a person's page and can **reset it** (the person is told by email; the action is audited). Readers list has the same button. Nobody can reset their own.
+6. **Emergency exits** (so you are never locked out): `docker exec -it university-journal php /var/www/app/bin/reset-2fa.php <id>` removes one person's second step; or switch the whole feature off in the Tech portal tab.
+
+**Decisions I took (tell me if you disagree)**
+- Google sign-in for readers is **not** asked for a second step (Google protects that login). Password sign-ins of readers are.
+- Authenticator secrets are stored **encrypted** (AES-256-GCM, key derived from `APP_KEY`). **Back up your `.env`/`APP_KEY`**: if it changes, authenticator secrets stop working (people would use backup codes or an admin reset).
+- Password is asked again for: switching on a method, switching one off, making new backup codes.
+- If a person's email changes (or an admin edits it), the email-code method is switched off automatically, because it needs a confirmed address.
+- A person with a second step set up is asked for it even when only the email method is left and mail is down; they then use a backup code (or an admin resets it).
+- Pre-existing sessions get a device row automatically the first time they are used, so nobody is signed out by the upgrade.
+
+**Bugs fixed on the way**
+- The login page used the icon `log-in`, which is not in your icon set (it is `login`). Fixed. I checked every icon in the code against your docs file: all others exist (including `thumbs-down`, so the earlier "missing icon" note is obsolete).
+- When an admin edited a person's email address, the address stayed marked "confirmed". Now it must be confirmed again.
+
+**What I could test for real here**: the QR encoder (`public/assets/js/qr.js`) was run for 11 texts from 5 to 210 bytes (versions 1 to 10, including multi-block and version-info versions) and every picture was **decoded correctly by OpenCV**. The TOTP algorithm was checked against the RFC 4226/6238 test vectors (the PHP in `app/Core/Totp.php` is the same maths). New: `tools/static-lint.py` (brackets, every `t('key')`, EN/BN parity, every `Class::method()`, every route handler, every view, every icon, JS syntax). It passes. It cannot replace a real run.
+
+**Test checklist for 1E-b**
+- [ ] Redeploy: migration 009 applies. `/security` opens for a student, a moderator, a reader.
+- [ ] Authenticator: Set up > scan the QR with your phone > type the code and password > "Authenticator app is on" and 10 backup codes appear once (Copy / Download work).
+- [ ] Sign out, sign in: after the password you get the code page; the app code works; the same code a second time is refused; a wrong code shows the error.
+- [ ] Tick "do not ask again": sign out and in again, no code asked. Remove the browser on /security: asked again.
+- [ ] Backup code works once and shows how many are left.
+- [ ] (needs SMTP) Email code: set up, sign in with it, "Send a new code" waits 45 seconds.
+- [ ] Two browsers signed in: /security lists both; "Sign out" on the other one signs it out on its next click.
+- [ ] Tech portal > Two-step sign-in: tick "Technical administrators must use a second step" while signed in as a tech admin without one: you are sent to /security until you set it up (try this with another tech admin or be ready to use the emergency command).
+- [ ] Moderator > a student with a second step > "Reset two-step sign-in".
+- [ ] Switch the master switch off: login stops asking for codes.
+
+**Known gaps / for next time**
+- No passkeys (WebAuthn) yet; a possible later extra.
+- Second step is not asked again before sensitive actions (only the password is); "recent sign-in" re-checks could come later.
+- Email codes use the same send-after-page mechanism as other emails (no retry queue).
 
 ## Done: Phase 1E-a2 "Email" (2026-11-27) - written, UNTESTED (static lint only: brackets in 122 PHP files, 871 language keys in en/bn with parity, every `t('key')` exists, every `Class::method` exists and is imported, no reserved-word SQL aliases; the linter is a script I wrote because the sandbox has no PHP)
 
@@ -73,7 +119,7 @@ Last updated: 2026-11-27 (Phase 1E-a2 written: Email/SMTP, verification, reset b
 - "Most rated" = likes minus dislikes ("Top rated") plus a separate "Most liked".
 - Published articles cannot be edited by the author yet (ask a moderator to archive); versioning and peer-review rounds are later.
 - No tags, bookmarks, notifications, comment likes, or report button yet. No full-text search engine; search is title/summary/author name.
-- New icon needed in your icon service: `thumbs-down` (SVG in `new-icons-2/thumbs-down.svg`). Until it is added, the dislike button shows no icon.
+- Icon `thumbs-down` is in the icon set now (checked 2026-11-28).
 
 ## Previous: Phase 1E-a (2026-11-26) - written, UNTESTED (static lint only: brackets, imports, method names, language keys en/bn parity, SQL quotes)
 **Your requests**
@@ -119,16 +165,16 @@ Last updated: 2026-11-27 (Phase 1E-a2 written: Email/SMTP, verification, reset b
 6. Change a setting on each tab; try an invalid value (error text shows, nothing saved); check `/tech/audit`.
 
 ## Backlog from your requests (decisions recorded, NOT built yet)
-- **2FA with email code and authenticator app (TOTP)**: you asked me to note it and choose the phase. Plan: Phase 1E-b "Security", right after the Email (SMTP) settings tab exists, because email codes need SMTP. SMTP will be configured by you later in the Tech portal. Scope: choose method per account, optional or required per role (setting), backup codes, trusted devices, a signed-in devices list with "sign out others", admin 2FA reset, audit entries. Passkeys (WebAuthn) as a possible later extra.
+- **2FA with email code and authenticator app (TOTP)**: DONE in Phase 1E-b (2026-11-28, see top). Original note: you asked me to note it and choose the phase. Plan: Phase 1E-b "Security", right after the Email (SMTP) settings tab exists, because email codes need SMTP. SMTP will be configured by you later in the Tech portal. Scope: choose method per account, optional or required per role (setting), backup codes, trusted devices, a signed-in devices list with "sign out others", admin 2FA reset, audit entries. Passkeys (WebAuthn) as a possible later extra.
 - **All the other important modern features for ease of use and a polished feel** (my proposal, in rough order): toasts and inline form feedback, keyboard shortcuts and a command palette in the portals, search-as-you-type, autosave drafts and an unsaved-changes warning in the editor, reading time and progress bar, copy-link and share buttons, bookmarks and a reading list, notifications bell plus email notifications (needs SMTP), installable app (PWA) with offline reading, social share cards and rich link previews, sitemap and RSS feed, print and PDF-friendly article view, empty states and skeleton loaders, maintenance-mode switch, backup and export from the Tech portal, a health dashboard.
 - **Fonts: all project fonts editable in the Tech portal.** Planned as the Fonts tab in Phase 1E: pickers fed by `/tzl-fonts/api/fonts.json` for body, headings, Bangla, Arabic, plus weights and sizes, with a live preview; later the article and editor fonts too.
 - **Principle: the Tech portal can do everything.** Any text, setting, limit, page, font, toggle or feature switch should be editable there instead of in code. Every new feature from now on ships with its Tech settings tab or section.
 
 ## Suggested next phases
-1. **1E-a / 1E-a2 (done)**. SMTP tab and test button now exist (see top).
-2. **1E-b Security**: 2FA (email and app), devices list, trusted devices.
-3. **1C Publishing (first slice done, see top)**. Remaining: autosave, versions/editing after publish, peer-review rounds, tags, drafts shared with co-authors.
-4. **1D Public site (home, explore, article page done)**. Remaining: RSS, sitemap, PWA, per-author pages listing their articles, better search.
+1. **Test what is written** (1B, 1B+, 1E-a, 1C/1D, 1E-a2, 1E-b): each has a checklist above. Send me any error text; I fix first.
+2. **1F Publishing extras** (my proposal): autosave of drafts, editing a published article with versions, tags, bookmarks / reading list, "email moderators when an article is submitted", report-comment button.
+3. **1G Notifications and polish**: notifications bell, search-as-you-type, command palette in the portals, installable app (PWA) with offline reading, toasts, empty states.
+4. **Phase 2**: community discussions, advertisement page, reviewer assignment and full peer review, citations, PDF export, analytics.
 I will ask you to confirm this order before starting.
 
 ## Done: Phase 1A (foundation)
@@ -139,7 +185,7 @@ I will ask you to confirm this order before starting.
 - Design system: light/dark theme (no flash), responsive header and footer, landing page placeholder, "coming soon" and error pages.
 - Fonts and icons: cached nginx mirrors of fonts.rayaz.org and icons.rayaz.org (no third-party requests from visitors), `Fonts` class and `/theme.css`, font settings (migration 002). Defaults: Open Sans, Young Serif, Noto Sans Bengali, Noto Naskh Arabic.
 - Profile-required-fields settings seeded per role (migration 002); the gate itself is built in 1B.
-- Icons still missing from the icon set (user to add): `newspaper`, `quote` (SVGs delivered in new-icons/). Until added, the home page feature card for 'Publish your work' shows a blank icon.
+- Icons: `newspaper` and `quote` are in the icon set now (checked 2026-11-28 against the docs file; all icons used in the code exist).
 
 ## Done: Phase 1B (accounts) - written, UNTESTED
 The sandbox has no PHP, so this was checked only by a static linter (brackets, method names, language keys). Build it and report any error output.

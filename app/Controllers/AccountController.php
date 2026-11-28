@@ -181,6 +181,7 @@ final class AccountController
         $oldEmail = $u['email'] === null ? null : mb_strtolower((string) $u['email']);
         if ($newEmail !== $oldEmail) {
             DB::exec('UPDATE users SET email = ?, email_verified_at = NULL WHERE id = ?', [$newEmail, $id]);   // a new address has to be confirmed again
+            \App\Services\TwoFactor::emailChanged($id);                                                         // the email-code second step needs a confirmed address
         }
         DB::exec('UPDATE users SET email_notify = ? WHERE id = ?', [post('email_notify') === '1' ? 1 : 0, $id]);
         if ($oldPhoto !== '' && $oldPhoto !== $photo) Avatar::delete($oldPhoto);

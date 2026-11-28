@@ -1,6 +1,6 @@
 # University Journal: full summary
 
-Last updated: 2026-11-27. Status: Phase 1A built and deployed; Phases 1B, 1B+, 1E-a, 1C/1D first slice and 1E-a2 (email) written, awaiting your build and test (no PHP in my sandbox, so only static checks were possible).
+Last updated: 2026-11-28. Status: Phase 1A built and deployed; Phases 1B, 1B+, 1E-a, 1C/1D first slice, 1E-a2 (email) and 1E-b (security / two-step sign-in) written, awaiting your build and test (no PHP in my sandbox, so only static checks were possible; `tools/static-lint.py` runs them).
 
 ## 1. What the project is
 An article publishing site for your university where students and professors publish their work. It is a student initiative; university officials are not involved yet. Licence: **GPL-3.0-or-later** (open source). Code lives on GitHub (also the backup) and is deployed by pulling the repo into Docker through Portainer's repository option, like your other projects.
@@ -48,7 +48,7 @@ I can't see my own token count, so I refresh `PROJECT.md` and `PROGRESS.md` afte
 - **Roles** are stored as text (student, teacher, moderator, tech_admin) so reviewer, editor and department admin can be added later without a schema change.
 - **Student IDs** stay private by default (from your ideas file).
 - **Sign-in ID system (2026-11-25):** switchable in the Tech portal between the university ID (default, one unique ID per user) and a fixed login number given at creation, counting up from 0 (unique, never reused). Every account always has a login number, so switching works both ways; switching back is refused while any account has no university ID.
-- **2FA (2026-11-25):** email code and authenticator app wanted; scheduled after SMTP settings exist (Phase 1E-b). You will set up SMTP in the Tech portal later.
+- **2FA (2026-11-25):** email code and authenticator app wanted; built in Phase 1E-b (2026-11-28), after SMTP settings existed.
 - **Modern ease-of-use features (2026-11-25):** wanted for a polished feel; the proposed list is in PROGRESS.md.
 - **The Tech portal can do everything (2026-11-25):** all texts, settings, limits, pages, toggles and all project fonts are editable there; each new feature ships with its settings.
 - **Working rules (2026-11-25):** I may make improvements, fix bugs along the way, ask questions, and I keep giving progress updates.
@@ -68,7 +68,8 @@ I can't see my own token count, so I refresh `PROJECT.md` and `PROGRESS.md` afte
 | 1C | Article types, editor, submission workflow, moderator review queue | First slice written (2026-11-27), needs your test |
 | 1D | Newspaper home, explore with filters, article page, likes/dislikes/comments/share, reader accounts (email + Google) | First slice written (2026-11-27), needs your test |
 | 1E-a2 | Email (SMTP) tab with test button, email verification, reset by email, notifications, sitemap/RSS/robots | Written (2026-11-27), needs your test |
-| 1E-b | Security: 2FA by email code and authenticator app, devices list, trusted devices | Planned (you asked me to note it and pick the phase) |
+| 1E-b | Security: 2FA by authenticator app and email code, backup codes, trusted browsers, signed-in devices list, admin reset, role requirements | Written (2026-11-28), needs your test |
+| 1F | Publishing extras: autosave, versions, tags, bookmarks, moderator submit alerts | Proposed next |
 | 2 | Community discussions, ads page, reviewer assignment, citations, versions, PDF export, analytics | Planned |
 | 3 | Further ideas from your ideas file (collections and journals, ORCID, collaboration, etc.) | Planned |
 
@@ -118,3 +119,7 @@ You also asked me to record these decisions in the progress and project files, d
 Built: Tech portal Email tab (SMTP, test button, send log), reader email verification (optional "must verify to like/comment"), forgot-password by email for readers (and optionally verified university accounts), email to authors about article decisions and comments, per-person opt-out, sitemap, RSS feed, robots.txt and an indexing switch. Details, test checklist and known gaps are at the top of PROGRESS.md. Decisions are in PROJECT.md (Decisions added 2026-11-27, Phase 1E-a2).
 **Next (my proposal):** test everything built so far, then Phase 1E-b Security (2FA by email code and authenticator app, devices list), then publishing extras (autosave, editing after publish, tags, bookmarks).
 
+
+## 12. Phase 1E-b (2026-11-28): security
+Built: Security page for everyone (authenticator app with browser-made QR, email code, backup codes, trusted browsers, list of signed-in browsers with remote sign-out), second step at `/login/2fa`, Tech portal tab "Two-step sign-in" (master switch, allowed methods, required per role, trust days, code lifetime), security emails, admin reset, emergency command `bin/reset-2fa.php`, `tools/static-lint.py`. Details, decisions, test checklist and gaps are at the top of PROGRESS.md; decisions are in PROJECT.md (Decisions added 2026-11-28).
+**Next (my proposal):** you build and test (newest phase first), then Phase 1F publishing extras.

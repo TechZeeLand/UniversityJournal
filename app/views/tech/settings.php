@@ -46,6 +46,13 @@ use App\Core\{Csrf, View};
         <?= e(t('readers.redirect')) ?> <code><?= e(\App\Services\GoogleAuth::redirectUri()) ?></code></span></div>
     <?php endif; ?>
     <?php if ($group === 'email') View::partial('tech/_email_tools', ['mailLog' => $mailLog, 'mailTo' => $mailTo]); ?>
+    <?php if ($group === 'twofactor'): ?>
+      <div class="alert alert-info" role="note"><?= icon('info') ?><span><?= e(t('twofa.intro')) ?>
+        <a href="/security"><?= e(t('sec.title')) ?></a></span></div>
+      <?php if (!\App\Services\Mailer::configured()): ?>
+        <div class="alert alert-warn" role="status"><?= icon('triangle-alert') ?><span><?= e(t('twofa.mail_off')) ?> <a href="/tech/settings/email"><?= e(t('settings.tab.email')) ?></a></span></div>
+      <?php endif; ?>
+    <?php endif; ?>
     <?php if ($group === 'seo'): ?>
       <div class="alert alert-info" role="note"><?= icon('info') ?><span><?= e(t('seo.intro')) ?>
         <a href="/sitemap.xml">/sitemap.xml</a> · <a href="/feed.xml">/feed.xml</a> · <a href="/robots.txt">/robots.txt</a></span></div>

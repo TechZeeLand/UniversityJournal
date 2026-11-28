@@ -20,6 +20,7 @@
             <td class="actions-cell">
               <form method="post" action="/moderator/users/<?= (int) $r['id'] ?>/status" class="inline"><?= Csrf::field() ?><input type="hidden" name="status" value="<?= $sus ? 'active' : 'suspended' ?>">
                 <button class="btn btn-ghost btn-sm" type="submit"><?= e(t($sus ? 'users.activate' : 'users.suspend')) ?></button></form>
+              <form method="post" action="/moderator/users/<?= (int) $r['id'] ?>/2fa-reset" class="inline" data-confirm="<?= e(t('sec.admin_confirm')) ?>"><?= Csrf::field() ?><button class="btn btn-ghost btn-sm" type="submit" title="<?= e(t('sec.admin_reset')) ?>"><?= icon('shield-x') ?></button></form>
               <?php if (!$r['google_sub']): ?><form method="post" action="/moderator/users/<?= (int) $r['id'] ?>/password" class="inline" data-confirm="<?= e(t('users.confirm_reset')) ?>"><?= Csrf::field() ?><button class="btn btn-ghost btn-sm" type="submit"><?= icon('key-round') ?></button></form><?php endif; ?>
             </td></tr>
         <?php endforeach; ?></tbody></table></div>

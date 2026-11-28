@@ -197,3 +197,11 @@ function cover_html(array $a, string $cls = ''): string
     $h = ((int) ($a['id'] ?? 0) * 47) % 360;
     return '<span class="' . e($cls) . ' cover-ph" style="--h:' . $h . '" aria-hidden="true">' . icon('quote') . '</span>';
 }
+
+/** "jane.doe@example.com" -> "j*******@example.com" (for pages that must not show the whole address). */
+function mask_email(string $email): string
+{
+    $at = strrpos($email, '@');
+    if ($at === false || $at < 1) return '';
+    return mb_substr($email, 0, 1) . str_repeat('*', max(2, min(8, $at - 1))) . substr($email, $at);
+}

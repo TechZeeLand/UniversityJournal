@@ -122,6 +122,18 @@ final class TechSettings
                 ['key' => 'login_lockout_minutes', 'type' => 'int', 'min' => 1, 'max' => 1440, 'default' => '15', 'grp' => 'security'],
                 ['key' => 'session_idle_minutes', 'type' => 'int', 'min' => 5, 'max' => 1440, 'default' => '120', 'grp' => 'security'],
             ]],
+            'twofactor' => ['icon' => 'shield-check', 'fields' => [
+                ['key' => 'twofa_enabled', 'type' => 'bool', 'default' => '1', 'grp' => 'twofa', 'heading' => 'set.h.twofa_main'],
+                ['key' => 'twofa_allow_totp', 'type' => 'bool', 'default' => '1', 'grp' => 'twofa'],
+                ['key' => 'twofa_allow_email', 'type' => 'bool', 'default' => '1', 'grp' => 'twofa'],
+                ['key' => 'twofa_require_tech_admin', 'type' => 'bool', 'default' => '0', 'grp' => 'twofa', 'heading' => 'set.h.twofa_require'],
+                ['key' => 'twofa_require_moderator', 'type' => 'bool', 'default' => '0', 'grp' => 'twofa'],
+                ['key' => 'twofa_require_member', 'type' => 'bool', 'default' => '0', 'grp' => 'twofa'],
+                ['key' => 'twofa_trust_days', 'type' => 'int', 'min' => 0, 'max' => 365, 'default' => '30', 'grp' => 'twofa', 'heading' => 'set.h.twofa_codes'],
+                ['key' => 'twofa_code_minutes', 'type' => 'int', 'min' => 2, 'max' => 60, 'default' => '10', 'grp' => 'twofa'],
+                ['key' => 'twofa_backup_count', 'type' => 'int', 'min' => 4, 'max' => 20, 'default' => '10', 'grp' => 'twofa'],
+                ['key' => 'security_alert_email', 'type' => 'bool', 'default' => '1', 'grp' => 'twofa'],
+            ]],
             'uploads' => ['icon' => 'upload', 'fields' => [
                 // The server itself accepts up to 25 MB per file (php.ini upload_max_filesize, nginx client_max_body_size 30m).
                 ['key' => 'upload_max_image_mb', 'type' => 'int', 'min' => 1, 'max' => 25, 'default' => '5', 'grp' => 'uploads'],

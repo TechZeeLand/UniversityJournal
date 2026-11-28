@@ -69,3 +69,15 @@ An open-source (GPL-3.0-or-later) article publishing platform for a university, 
 - **Search and feeds**: `/sitemap.xml`, `/feed.xml`, `/robots.txt`, with a master switch for search-engine indexing, all in Tech portal > Settings > Search and feeds.
 - 2FA by email code stays planned for Phase 1E-b; it can now use the same mailer.
 
+
+## Decisions added 2026-11-28 (Phase 1E-b Security)
+- **Two-step sign-in is optional by default, requirable per role** (tech admins, moderators, students and teachers) from Tech portal > Settings > Two-step sign-in. Methods: authenticator app (TOTP, RFC 6238) and a 6-digit email code; plus 10 one-time backup codes and "trusted browser" cookies (default 30 days, 0 = off). Master switch = emergency exit. A role rule never holds someone who cannot set any method up.
+- **Authenticator secrets are encrypted at rest** (AES-256-GCM, key derived from `APP_KEY`); codes (backup, email) are stored only as keyed hashes; a TOTP code cannot be used twice. Changing `APP_KEY` invalidates authenticator secrets.
+- **The password is asked again** to switch a method on or off and to make new backup codes. Failed codes are counted per person and per IP using the same lockout as passwords (separate counter, so a correct password does not reset it).
+- **Every signed-in browser is a row in `user_sessions`** (random token in the PHP session). People can sign out other browsers; a password change signs out all others and removes trusted browsers. Old sessions are adopted automatically.
+- **Google sign-in for readers skips the second step** (Google handles it). Password sign-ins of readers do not.
+- **Changing an email address un-confirms it** (also when an admin edits it) and switches the email-code method off.
+- **Admins can reset a person's second step** (not their own); the person is emailed and it is audited. Emergency: `bin/reset-2fa.php`.
+- **The QR code is made in the browser** (`public/assets/js/qr.js`, own code, byte mode, error correction M, up to 213 bytes): no library and no third-party request.
+- **`tools/static-lint.py`** is the project's no-PHP checker (brackets, language keys, method names, routes, views, icons, JS). Run it before each zip; it does not replace running the site.
+- Sign-in `ident` values starting with `~` are reserved for rate-limit buckets (`~reset`, `~signup`, `~2fa:<id>`, `~pw:<id>`).

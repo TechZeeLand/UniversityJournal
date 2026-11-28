@@ -123,4 +123,43 @@ final class Notify
             });
         }
     }
+    // ---- two-step sign-in ----------------------------------------------------------------------------
+
+    /** The 6-digit sign-in / set-up code. Needs a confirmed address. @return bool false when nothing could be sent */
+    public static function twofaCode(int $userId, string $code, int $minutes): bool
+    {
+        if (!Mailer::configured()) return false;
+        $u = self::target($userId, true, false);
+        if ($u === null) return false;
+        I18n::using($u['lang'], static function () use ($u, $code, $minutes): void {
+            [$text, $html] = Mailer::compose(
+                t('email.tf_h'),
+                [t('email.tf_p1', ['site' => site_name()]), t('email.tf_code', ['code' => $code]), t('email.tf_p2', ['min' => $minutes])],
+                null, null,
+                t('email.tf_footer')
+            );
+            Mailer::later($u['email'], t('email.tf_s', ['code' => $code, 'site' => site_name()]), $text, $html, 'twofa');
+        });
+        return true;
+    }
+
+    /**
+     * A security change on the account (second step switched on or off, new backup codes, reset by an admin).
+     * @param string $event totp_on | totp_off | email_on | email_off | backup_new | reset | devices_out
+     */
+    public static function security(int $userId, string $event): void
+    {
+        if (!Mailer::configured() || Settings::get('security_alert_email', '1') !== '1') return;
+        if (!in_array($event, ['totp_on', 'totp_off', 'email_on', 'email_off', 'backup_new', 'reset', 'devices_out'], true)) return;
+        $u = self::target($userId, true, false);
+        if ($u === null) return;
+        $where = [\App\Core\Request::ip(), \App\Core\Sessions::label(), date('Y-m-d H:i')];
+        I18n::using($u['lang'], static function () use ($u, $event, $where): void {
+            $lines = [t('email.sec_' . $event)];
+            if ($event !== 'reset') $lines[] = t('email.sec_where', ['ip' => $where[0], 'device' => $where[1], 'time' => $where[2]]);
+            $lines[] = t('email.sec_not_you');
+            [$text, $html] = Mailer::compose(t('email.sec_h'), $lines, t('email.sec_btn'), abs_url('/security'), '');
+            Mailer::later($u['email'], t('email.sec_s', ['site' => site_name()]), $text, $html, 'security');
+        });
+    }
 }

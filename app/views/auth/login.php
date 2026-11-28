@@ -1,7 +1,7 @@
 <section class="section">
   <div class="wrap auth-wrap">
     <div class="card auth-card">
-      <span class="card-icon"><?= icon('log-in') ?></span>
+      <span class="card-icon"><?= icon('login') ?></span>
       <h1 class="h-md"><?= e(t('auth.login_title')) ?></h1>
       <p class="muted"><?= e(\App\Core\Identity::t('auth.login_sub')) ?></p>
       <?php if (!empty($error)): ?>

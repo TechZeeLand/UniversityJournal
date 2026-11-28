@@ -17,6 +17,7 @@
             <span class="badge <?= $pubOn ? 'badge-ok' : '' ?>"><?= e(t($pubOn ? 'users.public_live' : 'users.public_hidden')) ?></span>
             <?php if (!empty($target['public_no'])): ?><span class="muted"> · <?= e(t('users.public_no', ['n' => $target['public_no']])) ?></span><?php endif; ?></p>
         <?php endif; ?>
+        <p class="small muted"><?= icon('shield-check') ?> <?= e(t(\App\Services\TwoFactor::enabled((int) $target['id']) ? 'sec.admin_has' : 'sec.admin_hasnt')) ?></p>
         <?php if (in_array($target['role'], ['student', 'teacher'], true)): ?>
           <p class="small"><?= $missing ? '<span class="muted">' . e(t('dash.profile_missing', ['list' => implode(', ', array_map(fn($f) => t('profile.f.' . $f), $missing))])) . '</span>' : icon('circle-check') . ' ' . e(t('dash.profile_done')) ?></p>
         <?php endif; ?>
@@ -39,6 +40,12 @@
             <?= \App\Core\Csrf::field() ?>
             <button class="btn btn-ghost" type="submit"><?= icon('key-round') ?> <?= e(t('users.reset_pw')) ?></button>
           </form>
+          <?php if (\App\Services\TwoFactor::enabled((int) $target['id'])): ?>
+          <form method="post" action="/moderator/users/<?= (int) $target['id'] ?>/2fa-reset" data-confirm="<?= e(t('sec.admin_confirm')) ?>">
+            <?= \App\Core\Csrf::field() ?>
+            <button class="btn btn-ghost" type="submit"><?= icon('shield-x') ?> <?= e(t('sec.admin_reset')) ?></button>
+          </form>
+          <?php endif; ?>
           <form method="post" action="/moderator/users/<?= (int) $target['id'] ?>/status" data-confirm="<?= e(t($target['status'] === 'active' ? 'users.confirm_suspend' : 'users.confirm_activate')) ?>">
             <?= \App\Core\Csrf::field() ?>
             <input type="hidden" name="status" value="<?= $target['status'] === 'active' ? 'suspended' : 'active' ?>">

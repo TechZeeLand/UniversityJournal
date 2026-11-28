@@ -198,6 +198,24 @@ final class ModeratorController
         redirect($row['role'] === 'reader' ? '/moderator/readers' : '/moderator/users/' . (int) $row['id']);
     }
 
+    /** Remove a person's second step (they lost their phone). Sends them a notice; they can set a new one after signing in. */
+    public static function user2faReset(string $id): void
+    {
+        $actor = self::actor();
+        $row = self::target($actor, $id);
+        if ((int) $row['id'] === (int) $actor['id']) abort(403);
+        $uid = (int) $row['id'];
+        if (!\App\Services\TwoFactor::enabled($uid)) {
+            Flash::add('info', t('sec.admin_none'));
+        } else {
+            \App\Services\TwoFactor::resetAll($uid);
+            Audit::log('2fa.reset', Identity::tag($row));
+            \App\Services\Notify::security($uid, 'reset');
+            Flash::add('ok', t('sec.admin_reset_ok'));
+        }
+        redirect($row['role'] === 'reader' ? '/moderator/readers' : '/moderator/users/' . $uid);
+    }
+
     private static function showUser(array $actor, array $row, ?array $old, ?string $error): void
     {
         $self = (int) $row['id'] === (int) $actor['id'];

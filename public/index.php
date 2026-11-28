@@ -4,6 +4,7 @@ declare(strict_types=1);
 require __DIR__ . '/../app/bootstrap.php';
 
 use App\Core\{Auth, Env, I18n, Request, Router, Session, View};
+use App\Services\TwoFactor;
 
 Session::start();
 I18n::init();
@@ -20,6 +21,17 @@ try {
         $p = Request::path();
         if (!in_array($p, ['/account/password', '/logout', '/health', '/theme.css'], true) && !str_starts_with($p, '/lang/')) {
             redirect('/account/password');
+        }
+    }
+    // Roles the Tech portal marks as "must use a second step" are held on the Security page until they have set one up.
+    // The public site stays open; only the working areas are closed. (Nobody is held when no method can be set up, so nobody gets locked out.)
+    if ($current !== null && TwoFactor::mustEnroll($current)) {
+        $p = Request::path();
+        foreach (['/tech', '/moderator', '/write', '/dashboard', '/profile'] as $area) {
+            if ($p === $area || str_starts_with($p, $area . '/')) {
+                \App\Core\Flash::add('warn', t('sec.must_enroll'));
+                redirect('/security');
+            }
         }
     }
     $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $_SERVER['REQUEST_URI'] ?? '/');

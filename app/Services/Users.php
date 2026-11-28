@@ -96,7 +96,12 @@ final class Users
         $pdo = DB::pdo();
         $pdo->beginTransaction();
         try {
+            $oldEmail = (string) DB::val('SELECT email FROM users WHERE id = ?', [$id]);
             DB::exec('UPDATE users SET uid = ?, role = ?, email = ? WHERE id = ?', [nn((string) ($d['uid'] ?? '')), $d['role'], nn((string) ($d['email'] ?? '')), $id]);
+            if (mb_strtolower($oldEmail) !== mb_strtolower((string) ($d['email'] ?? ''))) {
+                DB::exec('UPDATE users SET email_verified_at = NULL WHERE id = ?', [$id]);       // a new address has to be confirmed again
+                \App\Services\TwoFactor::emailChanged($id);
+            }
             if (array_key_exists('public_slug', $d)) {
                 DB::exec('UPDATE users SET public_slug = ? WHERE id = ?', [nn((string) $d['public_slug']), $id]);
             }

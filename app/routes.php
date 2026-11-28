@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-use App\Controllers\{AccountController, ArticleController, AuthController, EmailController, SeoController, ModeratorController, ModerationController, PublicController, ReaderController, SiteAdminController, TechController, WriterController};
+use App\Controllers\{AccountController, ArticleController, AuthController, EmailController, SecurityController, SeoController, ModeratorController, ModerationController, PublicController, ReaderController, SiteAdminController, TechController, WriterController};
 use App\Core\{DB, I18n, Theme, View};
 
 /** @var App\Core\Router $router */
@@ -37,6 +37,27 @@ $router->post('/logout', [AuthController::class, 'logout']);
 $router->get('/forgot', [AuthController::class, 'forgotForm']);
 $router->post('/forgot', [AuthController::class, 'forgot']);
 
+$router->get('/login/2fa', [AuthController::class, 'twofaForm']);
+$router->post('/login/2fa', [AuthController::class, 'twofaVerify']);
+$router->post('/login/2fa/send', [AuthController::class, 'twofaSend']);
+$router->post('/login/2fa/cancel', [AuthController::class, 'twofaCancel']);
+
+// ---- security page: second step, backup codes, trusted browsers, signed-in devices ----
+$router->get('/security', [SecurityController::class, 'index']);
+$router->post('/security/totp/start', [SecurityController::class, 'totpStart']);
+$router->post('/security/totp/cancel', [SecurityController::class, 'totpCancel']);
+$router->post('/security/totp/confirm', [SecurityController::class, 'totpConfirm']);
+$router->post('/security/totp/disable', [SecurityController::class, 'totpDisable']);
+$router->post('/security/email/start', [SecurityController::class, 'emailStart']);
+$router->post('/security/email/cancel', [SecurityController::class, 'emailCancel']);
+$router->post('/security/email/confirm', [SecurityController::class, 'emailConfirm']);
+$router->post('/security/email/disable', [SecurityController::class, 'emailDisable']);
+$router->post('/security/backup', [SecurityController::class, 'backupNew']);
+$router->post('/security/trusted/all', [SecurityController::class, 'trustedRevokeAll']);
+$router->post('/security/trusted/{id}/revoke', [SecurityController::class, 'trustedRevoke']);
+$router->post('/security/sessions/others', [SecurityController::class, 'sessionsOthers']);
+$router->post('/security/sessions/{id}/revoke', [SecurityController::class, 'sessionRevoke']);
+
 $router->get('/dashboard', [AccountController::class, 'dashboard']);
 $router->get('/account/password', [AccountController::class, 'passwordForm']);
 $router->post('/account/password', [AccountController::class, 'passwordSave']);
@@ -68,6 +89,7 @@ $router->get('/moderator/users/{id}', [ModeratorController::class, 'userShow']);
 $router->post('/moderator/users/{id}', [ModeratorController::class, 'userUpdate']);
 $router->post('/moderator/users/{id}/status', [ModeratorController::class, 'userStatus']);
 $router->post('/moderator/users/{id}/password', [ModeratorController::class, 'userPassword']);
+$router->post('/moderator/users/{id}/2fa-reset', [ModeratorController::class, 'user2faReset']);
 $router->get('/moderator/resets', [ModeratorController::class, 'resets']);
 $router->post('/moderator/resets/{id}/approve', [ModeratorController::class, 'resetApprove']);
 $router->post('/moderator/resets/{id}/reject', [ModeratorController::class, 'resetReject']);
