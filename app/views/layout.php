@@ -38,7 +38,7 @@ $otherLang = $loc === 'en' ? 'bn' : 'en';
 <?php endif; ?>
 <?php if (setting('seo_indexing', '1') !== '1'): ?>  <meta name="robots" content="noindex,nofollow">
 <?php endif; ?>
-  <link rel="icon" href="<?= e($icon ?? asset('logo.svg')) ?>" type="<?= e($iconType) ?>">
+  <link rel="icon" href="<?= e($icon ?? ('/brand-logo.svg?v=' . Theme::version())) ?>" type="<?= e($iconType) ?>">
 <?php if ($icon !== null && $iconType === 'image/png'): ?>  <link rel="apple-touch-icon" href="<?= e($icon) ?>">
 <?php endif; ?>
   <script src="<?= asset('js/theme-init.js') ?>"></script>
@@ -63,6 +63,7 @@ $otherLang = $loc === 'en' ? 'bn' : 'en';
         <a class="icon-btn" href="/lang/<?= $otherLang ?>" hreflang="<?= $otherLang ?>" aria-label="<?= e(t('ui.language')) ?>: <?= e(I18n::LOCALES[$otherLang]) ?>"><?= icon('languages') ?><span class="lang-label"><?= e(I18n::LOCALES[$otherLang]) ?></span></a>
         <button class="icon-btn theme-toggle" type="button" aria-label="<?= e(t('ui.theme')) ?>"><?= icon('moon', 'only-light') ?><?= icon('sun', 'only-dark') ?></button>
         <?php if ($cu): ?>
+          <?php if (\App\Services\Engagement::bookmarksOn()): ?><a class="icon-btn" href="/bookmarks" aria-label="<?= e(t('nav.bookmarks')) ?>" title="<?= e(t('nav.bookmarks')) ?>"><?= icon('bookmark') ?></a><?php endif; ?>
           <a class="icon-btn" href="<?= $cu['role'] === 'reader' ? '/account' : '/profile' ?>" aria-label="<?= e(t('nav.profile')) ?>"><?= avatar($cu) ?></a>
           <a class="btn btn-ghost btn-sm" href="<?= e(Auth::homeFor($cu['role'])) ?>"><?= icon('layout-dashboard') ?><span class="hide-sm"><?= e(t('home.' . $cu['role'])) ?></span></a>
           <form method="post" action="/logout" class="inline"><?= Csrf::field() ?><button class="icon-btn" type="submit" aria-label="<?= e(t('nav.logout')) ?>" title="<?= e(t('nav.logout')) ?>"><?= icon('log-out') ?></button></form>

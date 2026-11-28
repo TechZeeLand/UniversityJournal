@@ -1,6 +1,7 @@
 <?php
 /** @var string $active */
 $pendingN = (int) \App\Core\DB::val("SELECT COUNT(*) FROM password_reset_requests WHERE status = 'pending'");
+$reportN = \App\Services\Engagement::reportTotal();
 $reviewN = (int) \App\Core\DB::val("SELECT COUNT(*) FROM articles WHERE status = 'submitted'");
 $items = [
     'overview' => ['/moderator', t('portal.overview')],
@@ -21,6 +22,6 @@ if (($actor['role'] ?? '') === 'tech_admin') {
 ?>
 <nav class="portal-nav" aria-label="<?= e(t('portal.nav')) ?>">
   <?php foreach ($items as $key => [$href, $label]): ?>
-    <a href="<?= e($href) ?>"<?= $active === $key ? ' aria-current="page"' : '' ?>><?= e($label) ?><?= ($key === 'resets' && $pendingN > 0) ? ' <span class="badge badge-warn">' . $pendingN . '</span>' : '' ?><?= ($key === 'articles' && $reviewN > 0) ? ' <span class="badge badge-warn">' . $reviewN . '</span>' : '' ?></a>
+    <a href="<?= e($href) ?>"<?= $active === $key ? ' aria-current="page"' : '' ?>><?= e($label) ?><?= ($key === 'resets' && $pendingN > 0) ? ' <span class="badge badge-warn">' . $pendingN . '</span>' : '' ?><?= ($key === 'comments' && $reportN > 0) ? ' <span class="badge badge-warn">' . $reportN . '</span>' : '' ?><?= ($key === 'articles' && $reviewN > 0) ? ' <span class="badge badge-warn">' . $reviewN . '</span>' : '' ?></a>
   <?php endforeach; ?>
 </nav>

@@ -30,7 +30,7 @@ $on = static fn(bool $b): string => '<span class="badge ' . ($b ? 'badge-ok' : '
           <?php foreach ($newBackup as $c): ?><li><code><?= e($c) ?></code></li><?php endforeach; ?>
         </ul>
         <div class="actions">
-          <button class="btn btn-ghost btn-sm" type="button" data-copy-list="#backup-list"><?= icon('copy') ?> <?= e(t('sec.copy')) ?></button>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-list="#backup-list" data-done="<?= e(t('ui.copied')) ?>"><?= icon('copy') ?> <span><?= e(t('sec.copy')) ?></span></button>
           <button class="btn btn-ghost btn-sm" type="button" data-download-list="#backup-list" data-filename="backup-codes.txt"><?= icon('download') ?> <?= e(t('sec.download')) ?></button>
           <button class="btn btn-ghost btn-sm" type="button" onclick="window.print()"><?= icon('printer') ?> <?= e(t('sec.print')) ?></button>
         </div>

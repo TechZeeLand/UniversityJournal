@@ -79,6 +79,7 @@ final class ArticleController
             'preview' => $preview,
             'authorPath' => Articles::authorPath($a),
             'mine' => Engagement::mine((int) $a['id'], $u ? (int) $u['id'] : null),
+            'saved' => Engagement::bookmarked((int) $a['id'], $u ? (int) $u['id'] : null),
             'comments' => ($published && Engagement::commentsOn()) ? Engagement::comments((int) $a['id'], $isAdmin) : [],
             'related' => $published ? Articles::related($a, 3) : [],
             'canModerate' => $isAdmin,
@@ -155,12 +156,59 @@ final class ArticleController
             if (!$own && !Auth::isAdmin($u)) abort(403);
             Engagement::deleteComment((int) $c['id']);
             if (!$own) Audit::log('comment.delete', (string) $c['id'], 'article ' . $c['article_id'], (int) $u['id']);
+        } elseif ($action === 'dismiss') {
+            if (!Auth::isAdmin($u)) abort(403);
+            Engagement::dismissReports((int) $c['id']);
+            Audit::log('comment.dismiss_reports', (string) $c['id'], 'article ' . $c['article_id'], (int) $u['id']);
+            if (post('back') === 'portal') redirect('/moderator/comments?reported=1');
         } else {
             if (!Auth::isAdmin($u)) abort(403);
             Engagement::setHidden((int) $c['id'], $action === 'hide');
             Audit::log('comment.' . $action, (string) $c['id'], 'article ' . $c['article_id'], (int) $u['id']);
         }
         redirect(Articles::url($art) . '#comments');
+    }
+
+    /** Add or remove the article on the signed-in person's reading list. */
+    public static function bookmark(string $id): void
+    {
+        $a = self::publishedOr404($id);
+        $u = Auth::user();
+        if ($u === null) {
+            if (self::wantsJson()) self::json(['ok' => false, 'login' => '/login?next=' . rawurlencode(Articles::url($a))], 401);
+            Flash::add('info', t('auth.need_login'));
+            redirect('/login?next=' . rawurlencode(Articles::url($a)));
+        }
+        if (!Engagement::bookmarksOn()) abort(403);
+        $saved = Engagement::toggleBookmark((int) $a['id'], (int) $u['id']);
+        if (self::wantsJson()) self::json(['ok' => true, 'saved' => $saved]);
+        Flash::add('ok', t($saved ? 'bm.added' : 'bm.removed'));
+        redirect(post('back') === 'list' ? '/bookmarks' : Articles::url($a));
+    }
+
+    /** /bookmarks: the reading list. */
+    public static function bookmarks(): void
+    {
+        $u = Auth::need();
+        if (!Engagement::bookmarksOn()) abort(404);
+        $page = max(1, (int) ($_GET['p'] ?? 1));
+        $per = 12;
+        $found = Articles::bookmarked((int) $u['id'], $page, $per);
+        View::render('pages/bookmarks', ['title' => t('bm.title'), 'rows' => $found['rows'], 'total' => $found['total'], 'per' => $per, 'page' => $page]);
+    }
+
+    /** Report a comment to the moderators. */
+    public static function commentReport(string $id): void
+    {
+        $u = Auth::need();
+        $c = ctype_digit($id) ? Engagement::comment((int) $id) : null;
+        if ($c === null) abort(404);
+        $art = Articles::find((int) $c['article_id']);
+        if ($art === null) abort(404);
+        if (!Engagement::reportsOn()) abort(403);
+        $ok = Engagement::report((int) $c['id'], (int) $u['id'], post('reason', 'other'));
+        Flash::add($ok ? 'ok' : 'info', t($ok ? 'bm.reported' : 'bm.report_no'));
+        redirect(Articles::url($art) . '#c' . (int) $c['id']);
     }
 
     /** Called by the page when someone uses a share button (counted once per visit). */

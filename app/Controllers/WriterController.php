@@ -107,11 +107,46 @@ final class WriterController
         if ($submit) {
             $st = Articles::submit($aid);
             Audit::log('article.submit', (string) $aid, $st, (int) $u['id']);
+            if ($st === 'submitted') { $full = Articles::find($aid); if ($full !== null) \App\Services\Notify::articleSubmitted($full); }
             Flash::add('ok', t($st === 'published' ? 'write.published' : 'write.submitted'));
             redirect('/write');
         }
         Flash::add('ok', t('write.saved'));
         redirect('/write/' . $aid);
+    }
+
+    /**
+     * Automatic draft saving (JSON, called by the editor every few seconds while the person types).
+     * Saves only the text fields; the cover picture and the submit button keep using the normal form.
+     * A brand-new article becomes a draft on the first call and the editor switches to its address.
+     */
+    public static function autosave(): void
+    {
+        $u = self::writer();
+        header('Content-Type: application/json; charset=utf-8');
+        $id = post('id');
+        $existing = ($id !== '' && $id !== '0') ? self::mine($u, $id) : null;
+        if ($existing && !in_array($existing['status'], ['draft', 'changes_requested', 'rejected'], true)) {
+            http_response_code(409);
+            echo json_encode(['ok' => false]);
+            return;
+        }
+        $title = mb_substr(post('title'), 0, 220);
+        $body = mb_substr(str_replace("\r", '', (string) ($_POST['body'] ?? '')), 0, 200000);
+        if ($existing === null && $title === '' && trim($body) === '') { echo json_encode(['ok' => true, 'id' => 0, 'skipped' => true]); return; }
+        if ($title === '') $title = $existing !== null ? (string) $existing['title'] : t('write.untitled');
+        $typeId = ctype_digit(post('type_id')) && post('type_id') !== '0' ? (int) post('type_id') : null;
+        $deptId = ctype_digit(post('department_id')) && post('department_id') !== '0' ? (int) post('department_id') : null;
+        if ($typeId !== null && DB::val('SELECT 1 FROM article_types WHERE id = ? AND active = 1', [$typeId]) === null) $typeId = null;
+        if ($deptId !== null && DB::val('SELECT 1 FROM departments WHERE id = ?', [$deptId]) === null) $deptId = null;
+        $d = [
+            'title' => $title, 'summary' => mb_substr(post('summary'), 0, 500), 'body' => $body,
+            'lang' => in_array(post('lang'), Articles::LANGS, true) ? post('lang') : 'en',
+            'type_id' => $typeId, 'department_id' => $deptId, 'cover_path' => $existing['cover_path'] ?? null,
+        ];
+        if ($existing === null) $aid = Articles::create((int) $u['id'], $d);
+        else { Articles::update((int) $existing['id'], $d); $aid = (int) $existing['id']; }
+        echo json_encode(['ok' => true, 'id' => $aid, 'at' => date('H:i')]);
     }
 
     public static function withdraw(string $id): void

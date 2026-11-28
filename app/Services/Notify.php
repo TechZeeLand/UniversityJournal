@@ -93,6 +93,30 @@ final class Notify
         });
     }
 
+    // ---- new submission, to the moderators ---------------------------------------------------------
+
+    /** Tell every active moderator (with a confirmed address who has not opted out) that an article waits for review. */
+    public static function articleSubmitted(array $a): void
+    {
+        if (!Mailer::configured() || Settings::get('notify_moderators_submit', '1') !== '1') return;
+        $name = display_name($a);
+        $url = abs_url('/moderator/articles/' . (int) $a['id']);
+        foreach (DB::all("SELECT id FROM users WHERE role = 'moderator' AND status = 'active'") as $m) {
+            $uid = (int) $m['id'];
+            if ($uid === (int) $a['author_id']) continue;
+            $u = self::target($uid, true, true);
+            if ($u === null) continue;
+            I18n::using($u['lang'], function () use ($u, $a, $name, $url, $uid): void {
+                [$text, $html] = Mailer::compose(
+                    t('email.sub_h'),
+                    [t('email.sub_p', ['name' => $name !== '' ? $name : '?', 'title' => (string) $a['title']])],
+                    t('email.sub_btn'), $url, self::footer($uid)
+                );
+                Mailer::later($u['email'], t('email.sub_s', ['title' => mb_substr((string) $a['title'], 0, 80)]), $text, $html, 'article');
+            });
+        }
+    }
+
     // ---- comments -----------------------------------------------------------------------------------
 
     /** Tell the article's author, and the author of the comment being answered, about a new comment. */

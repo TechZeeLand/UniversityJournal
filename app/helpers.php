@@ -12,7 +12,13 @@ function setting(string $key, ?string $default = null): ?string { return Setting
 
 function url(string $path = '/'): string { return '/' . ltrim($path, '/'); }
 
-function asset(string $path): string { return '/assets/' . ltrim($path, '/'); }
+function asset(string $path): string
+{
+    $p = ltrim($path, '/');
+    $file = dirname(__DIR__) . '/public/assets/' . $p;
+    // the file's change time in the address, so browsers fetch a new CSS/JS file after an update instead of using a week-old copy
+    return '/assets/' . $p . (is_file($file) ? '?v=' . filemtime($file) : '');
+}
 
 /** Base path of the cached icon mirror (served by our own nginx). */
 function icons_base(): string { return rtrim(Env::get('ICONS_BASE', '/icons-cdn'), '/'); }
@@ -115,7 +121,7 @@ function brand_logo_html(): string
 {
     $light = Branding::url('logo');
     $dark = Branding::url('logo_dark');
-    if ($light === null && $dark === null) $light = asset('logo.svg');
+    if ($light === null && $dark === null) $light = '/brand-logo.svg?v=' . \App\Core\Theme::version();
     $one = static fn(string $src, string $cls): string => '<img class="brand-logo' . ($cls !== '' ? ' ' . $cls : '') . '" src="' . e($src) . '" alt="" height="32">';
     if ($light !== null && $dark !== null) return $one($light, 'only-light') . $one($dark, 'only-dark');
     return $one((string) ($light ?? $dark), '');
@@ -194,7 +200,7 @@ function cover_html(array $a, string $cls = ''): string
     if ($c !== '' && preg_match('#^articles/[A-Za-z0-9._-]+$#', $c) === 1) {
         return '<span class="' . e($cls) . '"><img src="/uploads/' . e($c) . '" alt="" loading="lazy"></span>';
     }
-    $h = ((int) ($a['id'] ?? 0) * 47) % 360;
+    $h = (((int) ($a['id'] ?? 0) * 47) % 71) - 35;       // a hue step around the brand colour (--brand-h), so covers follow the theme
     return '<span class="' . e($cls) . ' cover-ph" style="--h:' . $h . '" aria-hidden="true">' . icon('quote') . '</span>';
 }
 

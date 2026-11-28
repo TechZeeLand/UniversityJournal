@@ -1,4 +1,4 @@
-<?php /** @var array $p; @var array $links; @var string $dept; @var ?string $address */
+<?php /** @var array $p; @var array $links; @var string $dept; @var ?string $address; @var array $articles; @var int $total; @var int $per; @var int $page */
 $sub = $p['role'] === 'student' ? (string) $p['academic_session'] : (string) $p['designation'];
 $interests = array_filter(array_map('trim', explode(',', (string) $p['interests'])));
 ?>
@@ -25,7 +25,16 @@ $interests = array_filter(array_map('trim', explode(',', (string) $p['interests'
       <h2 class="h-sm"><?= e(t('profile.f.links')) ?></h2>
       <ul class="linklist"><?php foreach ($links as $l): ?><li><a href="<?= e($l) ?>" rel="noopener nofollow ugc" target="_blank"><?= icon('external-link') ?> <?= e(preg_replace('#^https?://#i', '', $l)) ?></a></li><?php endforeach; ?></ul>
     <?php endif; ?>
-    <h2 class="h-sm"><?= e(t('pub.articles')) ?></h2>
-    <div class="card pad center"><p class="muted"><?= e(t('pub.no_articles')) ?></p></div>
+    <h2 class="h-sm"><?= e(t('pub.articles')) ?><?php if ($total > 0): ?> <span class="muted small">(<?= e(num($total)) ?>)</span><?php endif; ?></h2>
+  </div>
+  <div class="wrap">
+    <?php if ($articles): ?>
+      <div class="story-grid">
+        <?php foreach ($articles as $a) \App\Core\View::partial('partials/article_card', ['a' => $a, 'v' => 'grid']); ?>
+      </div>
+      <?php \App\Core\View::partial('partials/pager', ['total' => $total, 'per' => $per, 'page' => $page]); ?>
+    <?php else: ?>
+      <div class="wrap narrow-md"><div class="card pad center"><p class="muted"><?= e(t('pub.no_articles')) ?></p></div></div>
+    <?php endif; ?>
   </div>
 </section>

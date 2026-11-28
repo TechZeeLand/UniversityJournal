@@ -1,5 +1,5 @@
 <?php
-/** @var array $actor, $groups, $fields, $values, $errors, $fontNames; @var string $group; @var ?array $idInfo; @var int $maxMb; @var array $mailLog; @var string $mailTo */
+/** @var array $actor, $groups, $fields, $values, $errors, $fontNames; @var string $group; @var ?array $idInfo; @var int $maxMb; @var array $mailLog; @var string $mailTo; @var ?array $colorTools */
 use App\Core\{Csrf, View};
 ?>
 <section class="section">
@@ -35,6 +35,7 @@ use App\Core\{Csrf, View};
     <?php endif; ?>
 
     <?php if ($group === 'branding') View::partial('tech/_brand_assets', ['maxMb' => $maxMb]); ?>
+    <?php if ($group === 'colors' && $colorTools !== null) View::partial('tech/_theme_tools', ['t' => $colorTools]); ?>
     <?php if ($group === 'urls'): ?>
       <div class="alert alert-info" role="note"><?= icon('info') ?><span><?= e(t('urls.intro')) ?></span></div>
     <?php endif; ?>
@@ -61,7 +62,7 @@ use App\Core\{Csrf, View};
       <p><a class="btn btn-ghost btn-sm" href="/tech/backups"><?= icon('hard-drive') ?> <?= e(t('backups.title')) ?></a></p>
     <?php endif; ?>
 
-    <form method="post" action="/tech/settings/<?= e($group) ?>" class="form card pad" novalidate>
+    <form method="post" action="/tech/settings/<?= e($group) ?>" class="form card pad" novalidate<?= $group === 'colors' ? ' data-theme-form' : '' ?>>
       <?= Csrf::field() ?>
       <h2 class="h-sm first"><?= e(t('settings.tab.' . $group)) ?></h2>
       <?php foreach ($fields as $f): $k = $f['key']; $type = $f['type']; $err = $errors[$k] ?? null; $val = (string) ($values[$k] ?? '');
@@ -88,8 +89,13 @@ use App\Core\{Csrf, View};
             <?php elseif ($type === 'textarea'): ?>
               <textarea id="f_<?= e($k) ?>" name="<?= e($k) ?>" rows="3" maxlength="<?= (int) $f['max_len'] ?>"><?= e($val) ?></textarea>
             <?php elseif ($type === 'color'): ?>
-              <div class="color-row"><input id="f_<?= e($k) ?>" name="<?= e($k) ?>" type="color" value="<?= e($val) ?>"><code><?= e($val) ?></code>
+              <div class="color-row"><input id="f_<?= e($k) ?>" name="<?= e($k) ?>" type="color" value="<?= e($val) ?>"><code data-hex><?= e($val) ?></code>
                 <span class="muted small"><?= e(t('set.default')) ?>: <code><?= e($f['default']) ?></code></span></div>
+            <?php elseif ($type === 'color_opt'): $isAuto = ($val === ''); $shown = $isAuto ? (string) (($colorTools['auto'][$k] ?? '#808080')) : $val; ?>
+              <div class="color-row" data-color-opt>
+                <input id="f_<?= e($k) ?>" name="<?= e($k) ?>" type="color" value="<?= e($shown) ?>"><code data-hex><?= e($shown) ?></code>
+                <label class="check"><input type="checkbox" name="<?= e($k) ?>__auto" value="1"<?= $isAuto ? ' checked' : '' ?>> <?= e(t('theme.auto')) ?></label>
+              </div>
             <?php elseif ($type === 'secret'): ?>
               <input id="f_<?= e($k) ?>" name="<?= e($k) ?>" type="password" maxlength="<?= (int) $f['max_len'] ?>" value="" autocomplete="new-password" placeholder="<?= e($val !== '' ? t('set.secret_set') : t('set.secret_unset')) ?>">
             <?php elseif ($type === 'font'): ?>

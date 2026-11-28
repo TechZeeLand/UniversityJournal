@@ -2,7 +2,7 @@
 namespace App\Controllers;
 
 use App\Core\{DB, View};
-use App\Services\{Pages, Profile, PublicUrl};
+use App\Services\{Articles, Pages, Profile, PublicUrl};
 
 /** Pages visitors see: editable pages, the authors directory and public profiles. */
 final class PublicController
@@ -48,7 +48,8 @@ final class PublicController
             $off = ($page - 1) * $per;
             $rows = DB::all(
                 "SELECT u.id, u.uid, u.public_id, u.public_no, u.public_slug, u.role, p.full_name, p.full_name_bn, p.department_id,
-                        p.academic_session, p.designation, p.photo_path
+                        p.academic_session, p.designation, p.photo_path,
+                        (SELECT COUNT(*) FROM articles a WHERE a.author_id = u.id AND a.status = 'published') AS article_count
                    FROM users u JOIN user_profiles p ON p.user_id = u.id
                   WHERE $where ORDER BY COALESCE(NULLIF(p.full_name, ''), p.full_name_bn), u.id LIMIT $per OFFSET $off",
                 $params
@@ -68,7 +69,12 @@ final class PublicController
         $canon = PublicUrl::path($row);
         if ($canon !== null && strcasecmp(rawurldecode((string) basename($canon)), $key) !== 0) redirect($canon, 301);   // e.g. a custom address is set
         $links = json_decode((string) ($row['links'] ?? ''), true);
+        // The person's published articles (the profile page used to show a fixed "no published articles" text)
+        $page = max(1, (int) ($_GET['p'] ?? 1));
+        $per = 12;
+        $found = Articles::search(['author' => (int) $row['id'], 'sort' => 'newest'], $page, $per);
         View::render('pages/profile', [
+            'articles' => $found['rows'], 'total' => $found['total'], 'per' => $per, 'page' => $page,
             'title' => display_name($row),
             'p' => $row,
             'links' => is_array($links) ? array_values(array_filter($links, 'is_string')) : [],

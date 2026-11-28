@@ -18,6 +18,13 @@ $router->get('/theme.css', function () {
     echo $css;
 });
 
+// The built-in logo, drawn in the chosen main colour (shown until a logo is uploaded; also the default favicon).
+$router->get('/brand-logo.svg', function () {
+    header('Content-Type: image/svg+xml; charset=utf-8');
+    header('Cache-Control: public, max-age=' . (isset($_GET['v']) ? '31536000, immutable' : '300'));
+    echo Theme::logoSvg();
+});
+
 $router->get('/health', function () {
     header('Content-Type: text/plain');
     try { DB::val('SELECT 1'); echo 'ok'; } catch (Throwable $e) { http_response_code(503); echo 'db down'; }
@@ -99,6 +106,7 @@ $router->get('/tech', [TechController::class, 'index']);
 $router->get('/tech/audit', [TechController::class, 'audit']);
 $router->get('/tech/settings', [TechController::class, 'settingsIndex']);
 $router->post('/tech/settings/id-mode', [TechController::class, 'idModeSave']);   // before {group}
+$router->post('/tech/settings/colors/preview', [TechController::class, 'colorPreview']);
 $router->post('/tech/email/test', [TechController::class, 'emailTest']);
 $router->get('/tech/settings/{group}', [TechController::class, 'settings']);
 $router->post('/tech/settings/{group}', [TechController::class, 'settingsSave']);
@@ -133,6 +141,7 @@ $router->post('/account', [ReaderController::class, 'accountSave']);
 $router->get('/write', [WriterController::class, 'index']);
 $router->get('/write/new', [WriterController::class, 'newForm']);
 $router->post('/write/preview', [WriterController::class, 'preview']);
+$router->post('/write/autosave', [WriterController::class, 'autosave']);
 $router->post('/write/image', [WriterController::class, 'image']);
 $router->post('/write', fn() => WriterController::save());
 $router->get('/write/{id}', [WriterController::class, 'editForm']);
@@ -145,11 +154,15 @@ $router->get('/explore', [ArticleController::class, 'explore']);
 $router->get('/article/{id}', fn(string $id) => ArticleController::show($id));
 $router->get('/article/{id}/{slug}', fn(string $id, string $slug) => ArticleController::show($id, $slug));
 $router->post('/article/{id}/react', [ArticleController::class, 'react']);
+$router->post('/article/{id}/bookmark', [ArticleController::class, 'bookmark']);
+$router->get('/bookmarks', [ArticleController::class, 'bookmarks']);
+$router->post('/comment/{id}/report', [ArticleController::class, 'commentReport']);
 $router->post('/article/{id}/comment', [ArticleController::class, 'commentAdd']);
 $router->post('/article/{id}/share', [ArticleController::class, 'shared']);
 $router->post('/comment/{id}/delete', fn(string $id) => ArticleController::commentAction($id, 'delete'));
 $router->post('/comment/{id}/hide', fn(string $id) => ArticleController::commentAction($id, 'hide'));
 $router->post('/comment/{id}/show', fn(string $id) => ArticleController::commentAction($id, 'show'));
+$router->post('/comment/{id}/dismiss', fn(string $id) => ArticleController::commentAction($id, 'dismiss'));
 
 // ---- moderation: review queue, comments, readers ----
 $router->get('/moderator/articles', [ModerationController::class, 'articles']);

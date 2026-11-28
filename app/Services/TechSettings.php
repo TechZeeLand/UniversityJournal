@@ -33,7 +33,7 @@ final class TechSettings
         $homeIcons[0]['heading'] = 'set.h.home_icons';
 
         return [
-            'branding' => ['icon' => 'palette', 'fields' => [
+            'branding' => ['icon' => 'image', 'fields' => [
                 ['key' => 'site_name', 'type' => 'text', 'max_len' => 80, 'required' => true, 'default' => 'University Journal', 'grp' => 'branding'],
                 ['key' => 'site_name_bn', 'type' => 'text', 'max_len' => 80, 'default' => '', 'grp' => 'branding'],
                 ['key' => 'site_tagline', 'type' => 'text', 'max_len' => 160, 'default' => '', 'grp' => 'branding'],
@@ -41,9 +41,28 @@ final class TechSettings
                 ['key' => 'university_name', 'type' => 'text', 'max_len' => 120, 'required' => true, 'default' => 'Our University', 'grp' => 'branding'],
                 ['key' => 'university_name_bn', 'type' => 'text', 'max_len' => 120, 'default' => '', 'grp' => 'branding'],
                 ['key' => 'brand_show_name', 'type' => 'bool', 'default' => '1', 'grp' => 'branding', 'heading' => 'set.h.look'],
-                ['key' => 'brand_primary', 'type' => 'color', 'default' => Theme::DEFAULT_PRIMARY, 'grp' => 'branding'],
-                ['key' => 'brand_primary_dark', 'type' => 'color', 'default' => Theme::DEFAULT_PRIMARY_DARK, 'grp' => 'branding'],
                 ['key' => 'source_repo_url', 'type' => 'url', 'max_len' => 255, 'default' => '', 'grp' => 'general', 'heading' => 'set.h.legal'],
+            ]],
+            'colors' => ['icon' => 'palette', 'fields' => [
+                ['key' => 'brand_primary', 'type' => 'color', 'default' => Theme::DEFAULT_PRIMARY, 'grp' => 'colors', 'heading' => 'set.h.colors_main'],
+                ['key' => 'brand_primary_dark', 'type' => 'color', 'default' => Theme::DEFAULT_PRIMARY_DARK, 'grp' => 'colors'],
+                ['key' => 'theme_accent', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_accent_dark', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_tint', 'type' => 'select', 'options' => Theme::TINT_LEVELS, 'default' => 'tint_none', 'grp' => 'colors'],
+                ['key' => 'theme_bg', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors', 'heading' => 'set.h.colors_light'],
+                ['key' => 'theme_surface', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_text', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_muted', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_border', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_danger', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_warn', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_bg_dark', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors', 'heading' => 'set.h.colors_dark'],
+                ['key' => 'theme_surface_dark', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_text_dark', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_muted_dark', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_border_dark', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_danger_dark', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
+                ['key' => 'theme_warn_dark', 'type' => 'color_opt', 'default' => '', 'grp' => 'colors'],
             ]],
             'fonts' => ['icon' => 'type', 'fields' => [
                 ['key' => 'font_body', 'type' => 'font', 'default' => 'Open Sans', 'grp' => 'fonts'],
@@ -90,7 +109,10 @@ final class TechSettings
                 ['key' => 'engage_share', 'type' => 'bool', 'default' => '1', 'grp' => 'engagement'],
                 ['key' => 'comment_max_len', 'type' => 'int', 'min' => 100, 'max' => 10000, 'default' => '1500', 'grp' => 'engagement'],
                 ['key' => 'comment_cooldown_sec', 'type' => 'int', 'min' => 0, 'max' => 600, 'default' => '20', 'grp' => 'engagement'],
+                ['key' => 'comment_reports_enabled', 'type' => 'bool', 'default' => '1', 'grp' => 'engagement'],
+                ['key' => 'bookmarks_enabled', 'type' => 'bool', 'default' => '1', 'grp' => 'engagement'],
                 ['key' => 'publish_needs_review', 'type' => 'bool', 'default' => '1', 'grp' => 'engagement', 'heading' => 'set.h.publishing'],
+                ['key' => 'autosave_seconds', 'type' => 'int', 'min' => 0, 'max' => 300, 'default' => '8', 'grp' => 'engagement'],
             ]],
             'email' => ['icon' => 'mail', 'fields' => [
                 ['key' => 'smtp_enabled', 'type' => 'bool', 'default' => '0', 'grp' => 'email', 'heading' => 'set.h.smtp'],
@@ -109,6 +131,7 @@ final class TechSettings
                 ['key' => 'email_reset_university', 'type' => 'bool', 'default' => '0', 'grp' => 'email'],
                 ['key' => 'notify_author_status', 'type' => 'bool', 'default' => '1', 'grp' => 'email'],
                 ['key' => 'notify_comments', 'type' => 'bool', 'default' => '1', 'grp' => 'email'],
+                ['key' => 'notify_moderators_submit', 'type' => 'bool', 'default' => '1', 'grp' => 'email'],
             ]],
             'seo' => ['icon' => 'globe', 'fields' => [
                 ['key' => 'seo_indexing', 'type' => 'bool', 'default' => '1', 'grp' => 'seo'],
@@ -181,6 +204,10 @@ final class TechSettings
                 continue;
             }
             $v = isset($post[$k]) && is_string($post[$k]) ? trim($post[$k]) : '';
+            if ($f['type'] === 'color_opt' && (($post[$k . '__auto'] ?? '') === '1' || $v === '')) {    // "automatic" = empty
+                $vals[$k] = '';
+                continue;
+            }
             if ($f['type'] === 'secret') {      // left empty = keep the stored value; never shown again
                 $vals[$k] = $v !== '' ? $v : (string) Settings::get($k, '');
                 if (mb_strlen($vals[$k]) > $f['max_len']) $errors[$k] = t('set.err_long', ['max' => $f['max_len']]);
@@ -213,6 +240,7 @@ final class TechSettings
                 case 'email':
                     if ($v !== '' && (mb_strlen($v) > 190 || filter_var($v, FILTER_VALIDATE_EMAIL) === false)) $errors[$k] = t('set.err_email');
                     break;
+                case 'color_opt':
                 case 'color':
                     if (!Theme::validColor($v)) $errors[$k] = t('set.err_color'); else $vals[$k] = strtolower($v);
                     break;

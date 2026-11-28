@@ -134,24 +134,25 @@ final class Mailer
     {
         $site = site_name();
         $brand = Theme::primary();
+        $pal = Theme::resolve(Theme::values(), false);       // the light palette chosen in the Tech portal (emails have no dark mode)
         $text = $heading . "\n\n" . implode("\n\n", $lines);
         $btnHtml = '';
         if ($buttonLabel !== null && $buttonUrl !== null) {
             $text .= "\n\n" . $buttonLabel . ":\n" . $buttonUrl;
             $btnHtml = '<p style="margin:24px 0"><a href="' . e($buttonUrl) . '" style="background:' . e($brand) . ';color:' . e(Theme::ink($brand)) . ';text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:bold;display:inline-block">' . e($buttonLabel) . '</a></p>'
-                . '<p style="font-size:12px;color:#667085;word-break:break-all">' . e($buttonUrl) . '</p>';
+                . '<p style="font-size:12px;color:' . e($pal['muted']) . ';word-break:break-all">' . e($buttonUrl) . '</p>';
         }
         if ($footer !== '') $text .= "\n\n--\n" . $footer;
         $text .= "\n\n" . $site . ' - ' . abs_url('/') . "\n";
 
         $paras = '';
         foreach ($lines as $l) $paras .= '<p style="margin:0 0 14px;line-height:1.6">' . nl2br(e($l)) . '</p>';
-        $html = '<!doctype html><html lang="' . e(\App\Core\I18n::locale()) . '"><body style="margin:0;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#1d2430">'
-            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:24px 12px"><tr><td align="center">'
-            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden">'
+        $html = '<!doctype html><html lang="' . e(\App\Core\I18n::locale()) . '"><body style="margin:0;background:' . e($pal['bg']) . ';font-family:Arial,Helvetica,sans-serif;color:' . e($pal['text']) . '">'
+            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' . e($pal['bg']) . ';padding:24px 12px"><tr><td align="center">'
+            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:' . e($pal['surface']) . ';border-radius:12px;overflow:hidden">'
             . '<tr><td style="background:' . e($brand) . ';color:' . e(Theme::ink($brand)) . ';padding:18px 24px;font-size:18px;font-weight:bold">' . e($site) . '</td></tr>'
             . '<tr><td style="padding:24px"><h1 style="font-size:20px;margin:0 0 16px">' . e($heading) . '</h1>' . $paras . $btnHtml . '</td></tr>'
-            . '<tr><td style="padding:14px 24px;background:#f9fafb;font-size:12px;color:#667085">' . ($footer !== '' ? e($footer) . '<br>' : '') . e($site) . ' · <a href="' . e(abs_url('/')) . '" style="color:#667085">' . e(abs_url('/')) . '</a></td></tr>'
+            . '<tr><td style="padding:14px 24px;background:' . e($pal['surface2']) . ';font-size:12px;color:' . e($pal['muted']) . '">' . ($footer !== '' ? e($footer) . '<br>' : '') . e($site) . ' · <a href="' . e(abs_url('/')) . '" style="color:' . e($pal['muted']) . '">' . e(abs_url('/')) . '</a></td></tr>'
             . '</table></td></tr></table></body></html>';
         return [$text, $html];
     }

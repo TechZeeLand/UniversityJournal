@@ -1,6 +1,6 @@
 # University Journal: full summary
 
-Last updated: 2026-11-28. Status: Phase 1A built and deployed; Phases 1B, 1B+, 1E-a, 1C/1D first slice, 1E-a2 (email) and 1E-b (security / two-step sign-in) written, awaiting your build and test (no PHP in my sandbox, so only static checks were possible; `tools/static-lint.py` runs them).
+Last updated: 2026-11-28 (second session). Status: Phase 1A built and deployed; Phases 1B, 1B+, 1E-a, 1C/1D first slice, 1E-a2 (email), 1E-b (security), your 5 requests of 2026-11-28 (footer, copy button, README, profile articles, editable colours) and Phase 1F (publishing extras) written, awaiting your build and test (no PHP in my sandbox, so only static checks were possible; `tools/static-lint.py` runs them).
 
 ## 1. What the project is
 An article publishing site for your university where students and professors publish their work. It is a student initiative; university officials are not involved yet. Licence: **GPL-3.0-or-later** (open source). Code lives on GitHub (also the backup) and is deployed by pulling the repo into Docker through Portainer's repository option, like your other projects.
@@ -69,7 +69,8 @@ I can't see my own token count, so I refresh `PROJECT.md` and `PROGRESS.md` afte
 | 1D | Newspaper home, explore with filters, article page, likes/dislikes/comments/share, reader accounts (email + Google) | First slice written (2026-11-27), needs your test |
 | 1E-a2 | Email (SMTP) tab with test button, email verification, reset by email, notifications, sitemap/RSS/robots | Written (2026-11-27), needs your test |
 | 1E-b | Security: 2FA by authenticator app and email code, backup codes, trusted browsers, signed-in devices list, admin reset, role requirements | Written (2026-11-28), needs your test |
-| 1F | Publishing extras: autosave, versions, tags, bookmarks, moderator submit alerts | Proposed next |
+| 1F | Publishing extras: autosave, reading list, comment reports, moderator submit alerts (versions and tags still to do) | Written (2026-11-28), needs your test |
+| 1G | Notification bell, search-as-you-type, command palette, PWA, editing published articles with versions, tags | Proposed next |
 | 2 | Community discussions, ads page, reviewer assignment, citations, versions, PDF export, analytics | Planned |
 | 3 | Further ideas from your ideas file (collections and journals, ORCID, collaboration, etc.) | Planned |
 
@@ -122,4 +123,10 @@ Built: Tech portal Email tab (SMTP, test button, send log), reader email verific
 
 ## 12. Phase 1E-b (2026-11-28): security
 Built: Security page for everyone (authenticator app with browser-made QR, email code, backup codes, trusted browsers, list of signed-in browsers with remote sign-out), second step at `/login/2fa`, Tech portal tab "Two-step sign-in" (master switch, allowed methods, required per role, trust days, code lifetime), security emails, admin reset, emergency command `bin/reset-2fa.php`, `tools/static-lint.py`. Details, decisions, test checklist and gaps are at the top of PROGRESS.md; decisions are in PROJECT.md (Decisions added 2026-11-28).
-**Next (my proposal):** you build and test (newest phase first), then Phase 1F publishing extras.
+**Next (my proposal):** you build and test (newest phase first), then Phase 1F publishing extras (done in the second session, see section 13).
+
+
+## 13. Second session, 2026-11-28
+Your requests, in order: (1) footer sticks to the bottom; (2) copy button of the temporary password works (it failed on plain HTTP; one helper now handles all copy buttons); (3) README rewritten for users; (4) public profile shows the person's published articles; (5) the whole colour theme is editable in Tech portal > Settings > Colours (palettes, tint of the greys, per-colour overrides, live preview, readability table; covers, logo, favicon and emails follow). Then Phase 1F: draft autosave, reading list, report a comment, email to moderators on submission. Details, decisions, test checklist and gaps are at the top of PROGRESS.md; decisions are in PROJECT.md (Decisions added 2026-11-28, second session).
+**Next (my proposal):** you build and test (newest first), then Phase 1G (notification bell, command palette, PWA, editing published articles with versions, tags).
+

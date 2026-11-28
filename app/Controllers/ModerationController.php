@@ -58,7 +58,7 @@ final class ModerationController
     public static function comments(): void
     {
         $actor = self::actor();
-        View::render('portal/comments', ['title' => t('review.comments'), 'actor' => $actor, 'rows' => Engagement::recent(60)]);
+        View::render('portal/comments', ['title' => t('review.comments'), 'actor' => $actor, 'rows' => Engagement::recent(60, ($_GET['reported'] ?? '') === '1'), 'reportedOnly' => ($_GET['reported'] ?? '') === '1']);
     }
 
     public static function readers(): void

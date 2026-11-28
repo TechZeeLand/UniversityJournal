@@ -11,7 +11,7 @@ $action = $a['id'] ? '/write/' . (int) $a['id'] : '/write';
     <?php if (!empty($a['review_note']) && $a['id']): ?><div class="review-note"><strong><?= e(t('write.reviewer_note')) ?>:</strong> <?= nl2br(e((string) $a['review_note'])) ?></div><?php endif; ?>
     <?php if (!empty($errors['profile'])): ?><div class="alert alert-warn" role="alert"><?= icon('triangle-alert') ?><span><?= e($errors['profile']) ?> <a href="/profile"><?= e(t('dash.complete_profile')) ?></a></span></div><?php endif; ?>
 
-    <form method="post" action="<?= e($action) ?>" enctype="multipart/form-data" class="form editor" data-editor novalidate>
+    <form method="post" action="<?= e($action) ?>" enctype="multipart/form-data" class="form editor" data-editor data-article-id="<?= (int) $a['id'] ?>" data-autosave="<?= (int) setting('autosave_seconds', '8') ?>" data-s-saving="<?= e(t('write.autosaving')) ?>" data-s-saved="<?= e(t('write.autosaved')) ?>" data-s-fail="<?= e(t('write.autosave_fail')) ?>" novalidate>
       <?= Csrf::field() ?>
       <div class="field"><label for="title"><?= e(t('write.title')) ?> <span class="req">*</span></label>
         <input id="title" name="title" type="text" maxlength="220" value="<?= e($a['title']) ?>" required<?= art_attrs($a) ?>><?= $err('title') ?></div>

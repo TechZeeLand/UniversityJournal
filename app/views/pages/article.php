@@ -43,7 +43,7 @@ $label = (string) $a['review_label'];
 
   <?php if ($a['status'] === 'published'): ?>
   <div class="wrap article-wrap engage">
-    <?php \App\Core\View::partial('partials/reactions', ['a' => $a, 'mine' => $mine]); ?>
+    <?php \App\Core\View::partial('partials/reactions', ['a' => $a, 'mine' => $mine, 'saved' => $saved ?? false]); ?>
     <?php \App\Core\View::partial('partials/share', ['a' => $a]); ?>
   </div>
 

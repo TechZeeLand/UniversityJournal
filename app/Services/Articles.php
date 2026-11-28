@@ -154,6 +154,21 @@ final class Articles
         return ['rows' => $rows, 'total' => $total];
     }
 
+    /** The reading list of one person: published articles they bookmarked, newest bookmark first. @return array{rows:list<array>, total:int} */
+    public static function bookmarked(int $userId, int $page, int $per): array
+    {
+        $per = max(1, min(60, $per));
+        $off = (max(1, $page) - 1) * $per;
+        $join = 'JOIN article_bookmarks b ON b.article_id = a.id AND b.user_id = ?';
+        $total = (int) DB::val('SELECT COUNT(*) ' . self::FROM . " $join WHERE a.status = 'published' AND u.status = 'active'", [$userId]);
+        $rows = DB::all(
+            'SELECT ' . self::SELECT . ', a.body ' . self::FROM . " $join WHERE a.status = 'published' AND u.status = 'active'
+              ORDER BY b.created_at DESC LIMIT $per OFFSET $off",
+            [$userId]
+        );
+        return ['rows' => $rows, 'total' => $total];
+    }
+
     public static function related(array $a, int $n = 3): array
     {
         return DB::all(

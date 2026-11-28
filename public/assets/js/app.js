@@ -33,12 +33,53 @@
     if (msg && !window.confirm(msg)) ev.preventDefault();
   });
 
+  // Copy text to the clipboard. navigator.clipboard only exists on HTTPS (or localhost), so on a plain-HTTP
+  // address (for example http://server:8090) we fall back to a hidden textarea and document.execCommand('copy').
+  // Resolves true when the text was copied, false when the browser refused (the caller then shows the text to select).
+  function copyText(text) {
+    function legacy() {
+      return new Promise(function (resolve) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        try { ta.setSelectionRange(0, text.length); } catch (e) {}
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        ta.remove();
+        resolve(ok);
+      });
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, legacy);
+    }
+    return legacy();
+  }
+  window.ujCopy = copyText;
+
+  // Say "Copied!" on a button for a moment (the button's data-done text), or select the text when copying failed
+  function flash(btn, ok, fallbackEl) {
+    var label = btn.querySelector('span') || btn;
+    var old = label.textContent;
+    if (ok) {
+      label.textContent = btn.getAttribute('data-done') || 'Copied!';
+      btn.classList.add('is-done');
+    } else if (fallbackEl && window.getSelection) {
+      var r = document.createRange(); r.selectNodeContents(fallbackEl);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      label.textContent = btn.getAttribute('data-fail') || 'Press Ctrl+C';
+    }
+    setTimeout(function () { label.textContent = old; btn.classList.remove('is-done'); }, 1800);
+  }
+
   // Copy text of an element (data-copy="elementId")
   document.querySelectorAll('[data-copy]').forEach(function (b) {
     b.addEventListener('click', function () {
       var el = document.getElementById(b.getAttribute('data-copy'));
-      if (!el || !navigator.clipboard) return;
-      navigator.clipboard.writeText(el.textContent.trim());
+      if (!el) return;
+      copyText(el.textContent.trim()).then(function (ok) { flash(b, ok, el); });
     });
   });
 
@@ -50,7 +91,7 @@
   }
   document.querySelectorAll('[data-copy-list]').forEach(function (b) {
     b.addEventListener('click', function () {
-      if (navigator.clipboard) navigator.clipboard.writeText(listText(b.getAttribute('data-copy-list')));
+      copyText(listText(b.getAttribute('data-copy-list'))).then(function (ok) { flash(b, ok, null); });
     });
   });
   document.querySelectorAll('[data-download-list]').forEach(function (b) {
@@ -127,6 +168,24 @@
     });
   });
 
+  // Reading list: save or remove without reloading
+  document.querySelectorAll('[data-bookmark]').forEach(function (btn) {
+    btn.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      post(btn.getAttribute('data-bookmark'), {})
+        .then(function (r) { return r.json().then(function (j) { return [r.status, j]; }); })
+        .then(function (x) {
+          var j = x[1];
+          if (x[0] === 401 && j.login) { window.location.href = j.login; return; }
+          if (!j.ok) return;
+          btn.classList.toggle('is-on', !!j.saved);
+          btn.setAttribute('aria-pressed', j.saved ? 'true' : 'false');
+          var l = btn.querySelector('.react-label'); if (l) l.textContent = btn.getAttribute(j.saved ? 'data-on' : 'data-off');
+        })
+        .catch(function () { btn.closest('form').submit(); });
+    });
+  });
+
   // Share: native sheet where the browser has one, copy link, one count per visit
   var share = document.querySelector('.share[data-share-url]');
   if (share) {
@@ -145,13 +204,9 @@
     }
     var cp = share.querySelector('[data-copy-link]');
     if (cp) cp.addEventListener('click', function () {
-      var done = function () {
-        var s = cp.querySelector('span'), old = s.textContent;
-        s.textContent = cp.getAttribute('data-done');
-        setTimeout(function () { s.textContent = old; }, 1800);
-        count();
-      };
-      if (navigator.clipboard) navigator.clipboard.writeText(url).then(done); else window.prompt('', url);
+      copyText(url).then(function (ok) {
+        if (ok) { flash(cp, true, null); count(); } else { window.prompt('', url); }
+      });
     });
     share.querySelectorAll('[data-share-net]').forEach(function (a) { a.addEventListener('click', count); });
   }
@@ -237,4 +292,37 @@
     if (on) render();
   });
   ta.addEventListener('input', function () { if (!prev.hidden) { clearTimeout(timer); timer = setTimeout(render, 500); } });
+
+  // Automatic draft saving: a few seconds after typing stops, only the text fields are sent
+  var secs = parseInt(form.getAttribute('data-autosave') || '0', 10);
+  var stateEl = form.querySelector('[data-save-state]');
+  if (secs > 0) {
+    var aTimer = null, busy = false, changed = 0, artId = form.getAttribute('data-article-id') || '0';
+    var say = function (t) { if (stateEl) stateEl.textContent = t; };
+    var save = function () {
+      if (submitting) return;
+      if (busy) { aTimer = setTimeout(save, 1500); return; }
+      busy = true; var mark = changed; say(form.getAttribute('data-s-saving'));
+      var fd = new URLSearchParams();
+      ['title', 'summary', 'body', 'lang', 'type_id', 'department_id'].forEach(function (n) { var el = form.elements[n]; if (el) fd.append(n, el.value); });
+      fd.append('id', artId);
+      fetch('/write/autosave', { method: 'POST', credentials: 'same-origin', body: fd, headers: { 'X-CSRF-Token': csrf, 'Accept': 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          busy = false;
+          if (!j.ok) { say(form.getAttribute('data-s-fail')); return; }
+          if (j.skipped) { say(''); return; }
+          if (artId === '0' && j.id) {          // the first save made the draft: from now on this page edits it
+            artId = String(j.id);
+            form.setAttribute('action', '/write/' + j.id);
+            try { history.replaceState(null, '', '/write/' + j.id); } catch (e) {}
+          }
+          if (mark === changed) dirty = false;
+          say(form.getAttribute('data-s-saved').replace('{time}', j.at || ''));
+        })
+        .catch(function () { busy = false; say(form.getAttribute('data-s-fail')); });
+    };
+    form.addEventListener('input', function () { changed++; clearTimeout(aTimer); aTimer = setTimeout(save, secs * 1000); });
+    form.addEventListener('change', function (e) { if (e.target && e.target.type !== 'file') { changed++; clearTimeout(aTimer); aTimer = setTimeout(save, 800); } });
+  }
 })();

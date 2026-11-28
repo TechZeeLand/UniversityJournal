@@ -10,6 +10,57 @@ final class Engagement
     public static function reactionsOn(): bool { return Settings::get('engage_reactions', '1') === '1'; }
     public static function commentsOn(): bool { return Settings::get('engage_comments', '1') === '1'; }
     public static function shareOn(): bool { return Settings::get('engage_share', '1') === '1'; }
+    public static function bookmarksOn(): bool { return Settings::get('bookmarks_enabled', '1') === '1'; }
+    public static function reportsOn(): bool { return Settings::get('comment_reports_enabled', '1') === '1'; }
+
+    // ---- reading list ---------------------------------------------------------------------------
+
+    public static function bookmarked(int $articleId, ?int $userId): bool
+    {
+        if ($userId === null) return false;
+        return DB::val('SELECT 1 FROM article_bookmarks WHERE article_id = ? AND user_id = ?', [$articleId, $userId]) !== null;
+    }
+
+    /** Add the article to the person's reading list, or take it off again. @return bool true = now saved */
+    public static function toggleBookmark(int $articleId, int $userId): bool
+    {
+        if (self::bookmarked($articleId, $userId)) {
+            DB::exec('DELETE FROM article_bookmarks WHERE article_id = ? AND user_id = ?', [$articleId, $userId]);
+            return false;
+        }
+        DB::exec('INSERT IGNORE INTO article_bookmarks (user_id, article_id) VALUES (?, ?)', [$userId, $articleId]);
+        return true;
+    }
+
+    // ---- reports on comments --------------------------------------------------------------------
+
+    public const REPORT_REASONS = ['spam', 'abuse', 'offtopic', 'other'];
+
+    /** @return bool false when the comment does not exist, is the person's own, or was already reported by them */
+    public static function report(int $commentId, int $userId, string $reason): bool
+    {
+        $owner = DB::val('SELECT user_id FROM article_comments WHERE id = ?', [$commentId]);
+        if ($owner === null || (int) $owner === $userId) return false;
+        if (!in_array($reason, self::REPORT_REASONS, true)) $reason = 'other';
+        if (DB::val('SELECT 1 FROM comment_reports WHERE comment_id = ? AND user_id = ?', [$commentId, $userId]) !== null) return false;
+        DB::exec('INSERT INTO comment_reports (comment_id, user_id, reason) VALUES (?, ?, ?)', [$commentId, $userId, $reason]);
+        return true;
+    }
+
+    public static function reportedByMe(int $userId, array $commentIds): array
+    {
+        if (!$commentIds) return [];
+        $in = implode(',', array_fill(0, count($commentIds), '?'));
+        $rows = DB::all("SELECT comment_id FROM comment_reports WHERE user_id = ? AND comment_id IN ($in)", array_merge([$userId], array_map('intval', $commentIds)));
+        $out = [];
+        foreach ($rows as $r) $out[(int) $r['comment_id']] = true;
+        return $out;
+    }
+
+    /** A moderator looked at the reports and decided the comment may stay. */
+    public static function dismissReports(int $commentId): void { DB::exec('DELETE FROM comment_reports WHERE comment_id = ?', [$commentId]); }
+
+    public static function reportTotal(): int { return (int) DB::val('SELECT COUNT(DISTINCT comment_id) FROM comment_reports'); }
 
     // ---- reactions ------------------------------------------------------------------------------
 
@@ -140,13 +191,16 @@ final class Engagement
     }
 
     /** Latest comments across the site, for the moderator overview. */
-    public static function recent(int $n = 30): array
+    public static function recent(int $n = 30, bool $reportedOnly = false): array
     {
         $n = max(1, min(100, $n));
+        $where = $reportedOnly ? 'WHERE EXISTS (SELECT 1 FROM comment_reports r WHERE r.comment_id = c.id)' : '';
         return DB::all(
-            "SELECT c.id, c.article_id, c.body, c.status, c.created_at, a.title, a.slug, u.role, u.uid, p.full_name, p.full_name_bn
+            "SELECT c.id, c.article_id, c.body, c.status, c.created_at, a.title, a.slug, u.role, u.uid, p.full_name, p.full_name_bn,
+                    (SELECT COUNT(*) FROM comment_reports r WHERE r.comment_id = c.id) AS report_count,
+                    (SELECT GROUP_CONCAT(DISTINCT r2.reason ORDER BY r2.reason SEPARATOR ',') FROM comment_reports r2 WHERE r2.comment_id = c.id) AS report_reasons
                FROM article_comments c JOIN articles a ON a.id = c.article_id JOIN users u ON u.id = c.user_id LEFT JOIN user_profiles p ON p.user_id = u.id
-              ORDER BY c.id DESC LIMIT $n"
+              $where ORDER BY c.id DESC LIMIT $n"
         );
     }
 }

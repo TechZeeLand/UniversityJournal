@@ -8,7 +8,10 @@ $id = (int) $a['id'];
 $max = max(100, (int) setting('comment_max_len', '1500'));
 $next = rawurlencode(\App\Services\Articles::url($a) . '#comments');
 
-$one = function (array $c, bool $isReply) use ($cu, $canModerate, $id): void {
+$ids = [];
+foreach ($comments as $c0) { $ids[] = (int) $c0['id']; foreach ($c0['replies'] as $r0) $ids[] = (int) $r0['id']; }
+$reportedMap = ($cu && Engagement::reportsOn()) ? Engagement::reportedByMe((int) $cu['id'], $ids) : [];
+$one = function (array $c, bool $isReply) use ($cu, $canModerate, $id, $reportedMap): void {
     $hidden = $c['status'] === 'hidden';
     $own = $cu && (int) $cu['id'] === (int) $c['user_id'];
 ?>
@@ -24,6 +27,16 @@ $one = function (array $c, bool $isReply) use ($cu, $canModerate, $id): void {
         <?php if ($cu && !$hidden): ?><button class="link-btn" type="button" data-reply="<?= (int) $c['id'] ?>"><?= icon('undo') ?> <?= e(t('eng.reply')) ?></button><?php endif; ?>
         <?php if ($canModerate): ?>
           <form method="post" action="/comment/<?= (int) $c['id'] ?>/<?= $hidden ? 'show' : 'hide' ?>" class="inline"><?= Csrf::field() ?><button class="link-btn" type="submit"><?= icon($hidden ? 'eye' : 'eye-off') ?> <?= e(t($hidden ? 'eng.show' : 'eng.hide')) ?></button></form>
+        <?php endif; ?>
+        <?php if ($cu && !$own && !$hidden && Engagement::reportsOn()): ?>
+          <?php if (isset($reportedMap[(int) $c['id']])): ?><span class="muted small"><?= icon('flag') ?> <?= e(t('bm.reported_short')) ?></span>
+          <?php else: ?>
+          <details class="report-box"><summary class="link-btn"><?= icon('flag') ?> <?= e(t('bm.report')) ?></summary>
+            <form method="post" action="/comment/<?= (int) $c['id'] ?>/report" class="report-form"><?= Csrf::field() ?>
+              <select name="reason" aria-label="<?= e(t('bm.reason')) ?>"><?php foreach (Engagement::REPORT_REASONS as $rs): ?><option value="<?= e($rs) ?>"><?= e(t('bm.r_' . $rs)) ?></option><?php endforeach; ?></select>
+              <button class="btn btn-ghost btn-sm" type="submit"><?= e(t('bm.send_report')) ?></button>
+            </form></details>
+          <?php endif; ?>
         <?php endif; ?>
         <?php if ($own || $canModerate): ?>
           <form method="post" action="/comment/<?= (int) $c['id'] ?>/delete" class="inline" data-confirm="<?= e(t('eng.confirm_delete')) ?>"><?= Csrf::field() ?><button class="link-btn danger" type="submit"><?= icon('trash-2') ?> <?= e(t('eng.delete')) ?></button></form>

@@ -10,6 +10,7 @@ return [
   'ui.cancel' => 'বাতিল',
   'ui.save' => 'সংরক্ষণ',
   'ui.copy' => 'কপি',
+  'ui.copied' => 'কপি হয়েছে!', 'ui.copy_fail' => 'কপি করতে Ctrl+C চাপুন',
   'ui.search' => 'খুঁজুন',
   'ui.prev' => 'আগের',
   'ui.next' => 'পরের',

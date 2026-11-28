@@ -1,6 +1,53 @@
 # Progress
 
-Last updated: 2026-11-28 (Phase 1E-b "Security" written: two-step sign-in with authenticator app and email code, backup codes, trusted browsers, signed-in devices list. Still written WITHOUT PHP in my sandbox: static checks only (see tools/static-lint.py). Please build and test, newest phase first.)
+Last updated: 2026-11-28 (second session: your 5 requests done, Phase 1F "Publishing extras" written. Still written WITHOUT PHP in my sandbox: static checks only, see tools/static-lint.py. Please build and test, newest first.)
+
+## Done: your requests of 2026-11-28 + Phase 1F (written, UNTESTED; static lint passes: 134 PHP files, 1106 language keys per language, EN/BN parity)
+
+### Your 5 requests, in the order you gave them
+1. **Footer sticks to the bottom** on short pages. `body` is now a full-height flex column and `main` takes the free space (`app.css`, uses `100dvh` so phone address bars do not break it).
+2. **Copy button for the temporary password works.** Cause: the old code used `navigator.clipboard`, which browsers only provide on HTTPS (or localhost), and it failed silently on plain HTTP. New shared helper `ujCopy` in `app.js`: uses the clipboard API when allowed, otherwise a hidden textarea + `execCommand('copy')`; the button says "Copied!" for 2 seconds, and if the browser refuses it selects the password and says "Press Ctrl+C". The same helper now serves the backup-codes Copy button and the article "Copy link" button.
+3. **README rewritten for users**: what the project is, what each kind of person can do, how it is made (stack table, folder map), how to deploy it (Portainer and local), first steps, data and backups, accounts and recovery, troubleshooting, licence. The owner-style summary stays in PROJECT.md / PROJECT_SUMMARY.md.
+4. **Public profile now lists the person's published articles** (paged, with a count). Cause: since Phase 1E-a the profile page held a fixed "No published articles yet" text that was never connected to the articles added later. Also new: the `/authors` cards show "N published".
+5. **Colours of the whole site are editable** (Tech portal > Settings > **Colours**, new tab):
+   - Main colour for light and for dark (moved here from Branding), optional accent colour for each, **10 ready-made palettes** (Teal = the old default, Ocean, Indigo, Violet, Rose, Crimson, Orange, Amber, Forest, Slate).
+   - **"Colour of the greys"**: None (the old neutral look, default) / Subtle / Medium / Strong. It mixes the main colour into backgrounds, cards, borders and quiet text, so the whole site, not just the buttons, takes on the brand.
+   - **Optional overrides** for page background, cards/header, text, quiet text, borders, danger and warning colours, separately for light and dark ("Automatic" box next to each, ticked by default).
+   - **Live preview** (light and dark side by side) and a **readability table** (contrast ratios; a warning sign under 4.5:1).
+   - Everything is worked out in PHP (`app/Core/Theme.php`) and delivered as CSS variables in `/theme.css`. I removed every fixed colour from the CSS: the home page blobs, danger button text, review note, generated article covers (they now vary around the brand hue instead of the whole rainbow), the dark-logo preview box. Also: checkboxes, radio buttons and text selection take the main colour; **the built-in logo and the default favicon are drawn in the main colour** (`/brand-logo.svg`); **emails use the chosen palette**.
+   - With the default settings the site looks as before (the accent blobs on the home page are now a neighbour of the main colour instead of amber and indigo).
+
+### Phase 1F "Publishing extras" (my proposal, you said continue)
+- **Draft autosave**: the editor saves the text fields by itself a few seconds after you stop typing (a new article becomes a draft on the first save and the page switches to its address). Status text next to the editor hint. Tech setting `autosave_seconds` (default 8, 0 = off). The cover picture and Submit still use the normal buttons.
+- **Reading list (bookmarks)**: a Save button next to like/dislike (works without reloading), a bookmark icon in the header, `/bookmarks` page. Tech switch.
+- **Report a comment**: signed-in people can report another person's comment with a reason (spam, abuse, off topic, other), once each. Moderators see a count badge in their menu, a "Reported" filter in Comments, the reasons, and a "Keep (clear reports)" button next to Hide/Delete. Tech switch.
+- **Email to moderators when an article is submitted** (to moderators with a confirmed address who have not switched notifications off). Tech switch on the Email tab.
+- **Cache fix**: CSS/JS addresses now carry the file's change time, because `/assets/` is cached for 7 days; without it browsers would keep showing the old footer/CSS after your redeploy.
+- New migration `010_publishing_extras.sql` (tables `article_bookmarks`, `comment_reports`, 4 settings). No new icons needed (`bookmark`, `flag` exist in your set).
+
+### Test checklist (newest first)
+- [ ] Redeploy; migration 010 applies; hard refresh once.
+- [ ] **Colours**: Settings > Colours opens; click a palette, watch the preview; Save; reload the site in light and dark: buttons, links, header, cards, covers all follow. Try "Colour of the greys" = Strong and read the readability table. Untick "Automatic" on Page background, pick a colour, check dark and light. Emails: send the test email (Email tab) and see the colours. Is the default favicon your main colour?
+- [ ] **Footer**: open a nearly empty page (for example /bookmarks with nothing saved, or a 404): footer is at the bottom of the window.
+- [ ] **Copy**: reset a student's password as moderator: Copy says "Copied!" and pastes correctly (try over plain HTTP and over HTTPS).
+- [ ] **Profile**: publish an article as a student; open `/students/<id>`: the article card shows; `/authors` shows "1 published".
+- [ ] **Autosave**: /write/new, type a title and some text, wait about 10 seconds: "Draft saved automatically at hh:mm", the address becomes `/write/<n>`, the draft is in /write. Reload: nothing lost.
+- [ ] **Bookmarks**: Save on an article, the icon in the header opens /bookmarks, press Saved again to remove.
+- [ ] **Reports**: as a reader, report someone's comment; as moderator see the badge, filter, Keep/Hide/Delete.
+- [ ] (needs SMTP) Submit an article as a student: a moderator gets the email.
+
+### Decisions I took (tell me if you disagree)
+- The old neutral greys stay the default ("None"); tinting is opt-in so nothing changes until you choose.
+- Generated covers (articles without a picture) follow the brand hue, within about 35 degrees, instead of random rainbow hues.
+- Emails are always light-themed (mail apps do not do dark themes reliably), using your light palette.
+- Autosave never submits and never touches the cover picture; a moderator-returned article keeps its status while being edited.
+- Reports are one per person per comment; clearing reports keeps the comment.
+
+### Known gaps / for next time
+- The colour maths is checked here with a Python copy of the same formulas (all 10 presets pass 4.5:1 at default settings); the PHP itself has not run. If /theme.css or the Colours tab shows an error, send me the message first.
+- Editing a published article with versions, tags, notification bell, command palette, PWA are still planned (Phase 1G).
+- The "Strong" grey tint can push some links just below 4.5:1 (for example Orange, Forest in light mode): the readability table will warn you; choose "Medium" or darken the main colour.
+
 
 ## Done: Phase 1E-b "Security" (2026-11-28) - written, UNTESTED (static checks pass; the QR generator and the TOTP maths were tested for real, see below)
 

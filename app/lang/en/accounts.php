@@ -10,6 +10,7 @@ return [
   'ui.cancel' => 'Cancel',
   'ui.save' => 'Save',
   'ui.copy' => 'Copy',
+  'ui.copied' => 'Copied!', 'ui.copy_fail' => 'Press Ctrl+C to copy',
   'ui.search' => 'Search',
   'ui.prev' => 'Previous',
   'ui.next' => 'Next',

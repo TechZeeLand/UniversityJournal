@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers;
 
-use App\Core\{Audit, Auth, DB, Flash, Identity, Paths, Settings, View};
+use App\Core\{Audit, Auth, DB, Flash, Identity, Paths, Settings, Theme, View};
 use App\Services\{Backups, Branding, FontList, Mailer, Profile, TechSettings};
 
 /** Tech portal (tech admins only). Phase 1E adds the full settings editor here. */
@@ -102,7 +102,28 @@ final class TechController
             'maxMb' => max(1, (int) setting('upload_max_image_mb', '5')),
             'mailLog' => $group === 'email' ? Mailer::recent(10) : [],
             'mailTo' => (string) (DB::val('SELECT email FROM users WHERE id = ?', [(int) $actor['id']]) ?? ''),
+            'colorTools' => $group === 'colors' ? self::colorTools($values) : null,
         ]);
+    }
+
+    /** Presets, preview variables, "automatic" colours and readability checks for the Colours tab. */
+    private static function colorTools(array $values): array
+    {
+        $v = array_merge(Theme::values(), array_intersect_key($values, Theme::KEYS));
+        return ['v' => $v, 'decls' => Theme::previewDecls($v), 'auto' => Theme::autoShown($v), 'checks' => Theme::checks($v), 'presets' => Theme::PRESETS];
+    }
+
+    /** Live preview of the Colours tab: nothing is saved (JSON). */
+    public static function colorPreview(): void
+    {
+        Auth::needRole('tech_admin');
+        [$vals, $errors] = TechSettings::validate('colors', $_POST);
+        $v = array_merge(Theme::values(), array_intersect_key(array_diff_key($vals, $errors), Theme::KEYS));
+        ob_start();
+        View::partial('tech/_theme_checks', ['checks' => Theme::checks($v)]);
+        $html = (string) ob_get_clean();
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(Theme::previewDecls($v) + ['checks' => $html, 'auto' => Theme::autoShown($v)], JSON_UNESCAPED_UNICODE);
     }
 
     /** Send a test email with the saved settings and report exactly what the mail server said. */

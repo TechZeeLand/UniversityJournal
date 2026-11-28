@@ -19,7 +19,7 @@ try {
     $current = Auth::user();
     if ($current !== null && (int) $current['must_change_password'] === 1) {
         $p = Request::path();
-        if (!in_array($p, ['/account/password', '/logout', '/health', '/theme.css'], true) && !str_starts_with($p, '/lang/')) {
+        if (!in_array($p, ['/account/password', '/logout', '/health', '/theme.css', '/brand-logo.svg'], true) && !str_starts_with($p, '/lang/')) {
             redirect('/account/password');
         }
     }

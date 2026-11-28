@@ -81,3 +81,12 @@ An open-source (GPL-3.0-or-later) article publishing platform for a university, 
 - **The QR code is made in the browser** (`public/assets/js/qr.js`, own code, byte mode, error correction M, up to 213 bytes): no library and no third-party request.
 - **`tools/static-lint.py`** is the project's no-PHP checker (brackets, language keys, method names, routes, views, icons, JS). Run it before each zip; it does not replace running the site.
 - Sign-in `ident` values starting with `~` are reserved for rate-limit buckets (`~reset`, `~signup`, `~2fa:<id>`, `~pw:<id>`).
+
+## Decisions added 2026-11-28 (second session: bug fixes, Colours, Phase 1F)
+- **The whole colour theme is configurable** (Tech portal > Settings > Colours): main colour and optional accent per theme, 10 ready-made palettes, a "colour of the greys" tint (none by default, so the old neutral look is kept), optional single-colour overrides for background, cards, text, quiet text, borders, danger and warning, a live preview and a contrast table. Colours are resolved in PHP (`Core/Theme.php`) and delivered only as CSS variables, so the CSS holds no fixed brand colours; the built-in logo, default favicon, generated covers and emails follow the palette. The Branding tab no longer holds colours.
+- **Copy buttons use one helper** (`ujCopy`): clipboard API on HTTPS, `execCommand` fallback on plain HTTP, visible feedback.
+- **Public profiles list the person's published articles**; the authors directory shows each person's article count.
+- **CSS and JS addresses carry the file change time** (cache busting), because `/assets/` is cached for 7 days.
+- **Phase 1F**: draft autosave (setting `autosave_seconds`), reading list (`article_bookmarks`), report a comment (`comment_reports`, moderators see counts and can clear reports), email to moderators on submission (setting `notify_moderators_submit`). Each has a Tech portal switch.
+- **README is for users** (what, how made, how deployed); owner-facing detail lives in PROJECT.md, PROJECT_SUMMARY.md and PROGRESS.md.
+
